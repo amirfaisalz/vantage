@@ -1,7 +1,7 @@
 # Vantage – Project Status Tracker
 
-> **Quick Status:** ✅ Phase 1 Complete  
-> **Current Phase:** Phase 2 - Core UI Components  
+> **Quick Status:** ✅ Phase 2 Complete  
+> **Current Phase:** Phase 3 - Velocity Scanner  
 > **Last Updated:** 2025-12-30
 
 ---
@@ -11,29 +11,29 @@
 | Phase | Name                   | Status         | Progress        |
 | ----- | ---------------------- | -------------- | --------------- |
 | 1     | Foundation & Setup     | ✅ Complete    | ██████████ 100% |
-| 2     | Core UI Components     | ⬜ Not Started | ░░░░░░░░░░ 0%   |
+| 2     | Core UI Components     | ✅ Complete    | ██████████ 100% |
 | 3     | Velocity Scanner       | ⬜ Not Started | ░░░░░░░░░░ 0%   |
 | 4     | Growth ROI Simulator   | ⬜ Not Started | ░░░░░░░░░░ 0%   |
 | 5     | Tracking Pipeline      | ⬜ Not Started | ░░░░░░░░░░ 0%   |
 | 6     | Polish & Optimization  | ⬜ Not Started | ░░░░░░░░░░ 0%   |
 | 7     | Documentation & Deploy | ⬜ Not Started | ░░░░░░░░░░ 0%   |
 
-**Total Project Progress:** ██░░░░░░░░ ~15%
+**Total Project Progress:** ███░░░░░░░ ~30%
 
 ---
 
 ## 🎯 Current Focus
 
-### Phase 2: Core UI Components
+### Phase 3: Velocity Scanner
 
-**Goal:** Build all reusable UI components with micro-interactions
+**Goal:** Implement PageSpeed Insights API integration
 
 **Next Tasks:**
 
-- [ ] URL Input component with scanning animation
-- [ ] Gauge chart component (animated)
-- [ ] Skeleton UI components
-- [ ] Code block component (syntax highlighted)
+- [ ] PageSpeed Insights API integration
+- [ ] API route for PageSpeed data
+- [ ] Scanning animation with real data
+- [ ] Error handling & edge cases
 
 ---
 
@@ -68,6 +68,20 @@
 - Created `use-animations.ts` hooks
 - Updated landing page with demo UI
 - Fixed TypeScript errors in motion and resizable components
+- Build verification passed
+
+### Session: 2025-12-30 (Phase 2)
+
+**Focus:** Core UI Components
+
+**Completed:**
+
+- Built `url-input.tsx` with scanning animation and pulsing glow
+- Built `gauge-chart.tsx` with SVG arc visualization and color thresholds
+- Enhanced `skeleton.tsx` with shimmer animation
+- Built `code-block.tsx` with JSON syntax highlighting
+- Built `transparency-toggle.tsx` for raw/formatted view switching
+- Updated demo page to showcase all components
 - Build verification passed
 
 ---

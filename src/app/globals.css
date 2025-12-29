@@ -170,3 +170,10 @@
     background-clip: text;
   }
 }
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

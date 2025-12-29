@@ -1,6 +1,7 @@
 import { FeaturesSection } from "@/components/features-section";
 import { GrowthROISimulator } from "@/components/growth-roi-simulator";
 import { VelocityScanner } from "@/components/velocity-scanner";
+import { EventLogSidebar } from "@/components/event-log-sidebar";
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <VelocityScanner />
       <GrowthROISimulator />
       <FeaturesSection />
+      <EventLogSidebar />
 
       <footer className="border-t border-zinc-800 px-6 py-8">
         <div className="mx-auto max-w-5xl text-center text-sm text-zinc-500">
@@ -16,7 +18,7 @@ export default function Home() {
             <span className="text-orange-500">React 19</span>, and{" "}
             <span className="text-orange-500">Framer Motion</span>
           </p>
-          <p className="mt-2 text-zinc-600">Phase 4: Growth ROI Simulator ✓</p>
+          <p className="mt-2 text-zinc-600">Phase 5: Tracking Pipeline ✓</p>
         </div>
       </footer>
     </div>

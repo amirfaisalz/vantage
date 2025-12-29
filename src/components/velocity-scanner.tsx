@@ -18,6 +18,8 @@ import { SkeletonMetrics } from "@/components/ui/skeleton";
 import { AlertCircle, Monitor, Smartphone } from "lucide-react";
 import type { AnalysisResult, AnalysisError } from "@/lib/pagespeed";
 import { cn } from "@/lib/utils";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { EventNames } from "@/lib/tracking";
 
 type DeviceStrategy = "mobile" | "desktop";
 
@@ -27,12 +29,15 @@ export function VelocityScanner() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<AnalysisError | null>(null);
   const [strategy, setStrategy] = useState<DeviceStrategy>("mobile");
+  const { track } = useTrackEvent();
 
   const handleScan = useCallback(
     async (url: string) => {
       setScanStatus("scanning");
       setError(null);
       setResult(null);
+
+      track(EventNames.ANALYSIS_STARTED, "analysis", { url, strategy });
 
       try {
         const response = await fetch("/api/analyze", {
@@ -46,20 +51,33 @@ export function VelocityScanner() {
         if (!response.ok) {
           setError(data as AnalysisError);
           setScanStatus("invalid");
+          track(EventNames.ANALYSIS_ERROR, "analysis", {
+            url,
+            error: (data as AnalysisError).error,
+          });
           return;
         }
 
         setResult(data as AnalysisResult);
         setScanStatus("valid");
+        track(EventNames.ANALYSIS_COMPLETE, "analysis", {
+          url,
+          score: (data as AnalysisResult).performanceScore,
+          lcp: (data as AnalysisResult).metrics.lcp.value,
+        });
       } catch (err) {
         setError({
           error: err instanceof Error ? err.message : "Failed to analyze URL",
           code: "API_ERROR",
         });
         setScanStatus("invalid");
+        track(EventNames.ANALYSIS_ERROR, "analysis", {
+          url,
+          error: "API_ERROR",
+        });
       }
     },
-    [strategy]
+    [strategy, track]
   );
 
   const isLoading = scanStatus === "scanning";

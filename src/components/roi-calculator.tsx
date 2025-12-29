@@ -20,6 +20,8 @@ import {
   formatCurrency,
   formatNumber,
 } from "@/lib/roi/calculations";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { EventNames } from "@/lib/tracking";
 
 interface ROICalculatorProps {
   inputs: ROIInputs;
@@ -33,22 +35,33 @@ export function ROICalculator({
   className,
 }: ROICalculatorProps) {
   const result = calculateROI(inputs);
+  const { track } = useTrackEvent();
 
   const handleTrafficChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value.replace(/,/g, "")) || 0;
     onInputsChange({ ...inputs, monthlyTraffic: value });
+    track(EventNames.CALCULATOR_TRAFFIC_CHANGED, "calculator", {
+      traffic: value,
+    });
   };
 
   const handleAOVChange = (value: number[]) => {
     onInputsChange({ ...inputs, averageOrderValue: value[0] });
+    track(EventNames.CALCULATOR_AOV_CHANGED, "calculator", { aov: value[0] });
   };
 
   const handleConversionChange = (value: number[]) => {
     onInputsChange({ ...inputs, conversionRate: value[0] });
+    track(EventNames.CALCULATOR_CONVERSION_CHANGED, "calculator", {
+      rate: value[0],
+    });
   };
 
   const handleLoadTimeChange = (value: number[]) => {
     onInputsChange({ ...inputs, currentLoadTime: value[0] });
+    track(EventNames.CALCULATOR_LOADTIME_CHANGED, "calculator", {
+      loadTime: value[0],
+    });
   };
 
   return (

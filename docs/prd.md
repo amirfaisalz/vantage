@@ -1,7 +1,3 @@
-Here is the revised PRD. I’ve renamed the project to **Vantage**—it implies a "superior perspective" on data, which fits the Growth Engineer persona. I've also swapped the color palette to a high-energy **International Orange**, which pops perfectly against a professional dark mode.
-
----
-
 # PRD: Vantage – The Growth Analytics & Velocity Engine
 
 ## 1. Project Overview
@@ -22,13 +18,13 @@ Here is the revised PRD. I’ve renamed the project to **Vantage**—it implies 
 
 ## 2. Technical Stack
 
-- **Framework:** Next.js 15 (App Router) + React 19.
+- **Framework:** Next.js 16 (App Router) + React 19.
 - **Language:** TypeScript (Strict Mode).
 - **Styling:** Tailwind CSS.
 - **Primary Color:** `orange-500` (#f97316) — energetic, action-oriented, and high-contrast.
 - **Components:** Shadcn UI + Radix UI.
 - **Animations:** Framer Motion.
-- **Charts:** Recharts (Buffer’s preference).
+- **Charts:** Recharts
 - **Data Source:** Google PageSpeed Insights API.
 
 ---

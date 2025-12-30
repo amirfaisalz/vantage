@@ -145,28 +145,30 @@ const CodeBlock = React.forwardRef<HTMLDivElement, CodeBlockProps>(
         transition={{ duration: 0.3 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-zinc-800/50 border-b border-zinc-700">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-zinc-800/50 border-b border-zinc-700">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {/* Decorative dots */}
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-zinc-600" />
-              <div className="w-3 h-3 rounded-full bg-zinc-600" />
-              <div className="w-3 h-3 rounded-full bg-zinc-600" />
+            <div className="flex gap-1.5 shrink-0">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-zinc-600" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-zinc-600" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-zinc-600" />
             </div>
             {title && (
-              <span className="text-sm font-medium text-zinc-400">{title}</span>
+              <span className="text-xs sm:text-sm font-medium text-zinc-400 truncate">
+                {title}
+              </span>
             )}
-            <span className="text-xs px-2 py-0.5 rounded bg-zinc-700 text-zinc-400 uppercase">
+            <span className="text-xs px-1.5 sm:px-2 py-0.5 rounded bg-zinc-700 text-zinc-400 uppercase shrink-0">
               {language}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Copy button */}
             <motion.button
               onClick={handleCopy}
               className={cn(
-                "p-1.5 rounded-md transition-colors",
+                "p-1 sm:p-1.5 rounded-md transition-colors",
                 copied
                   ? "text-emerald-400 bg-emerald-400/10"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
@@ -185,7 +187,7 @@ const CodeBlock = React.forwardRef<HTMLDivElement, CodeBlockProps>(
             {collapsible && (
               <motion.button
                 onClick={() => setCollapsed(!collapsed)}
-                className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
+                className="p-1 sm:p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 transition-colors"
                 whileTap={{ scale: 0.95 }}
               >
                 {collapsed ? (
@@ -209,10 +211,10 @@ const CodeBlock = React.forwardRef<HTMLDivElement, CodeBlockProps>(
           className="overflow-hidden"
         >
           <div
-            className="p-4 overflow-auto font-mono text-sm"
+            className="p-3 sm:p-4 overflow-auto font-mono text-xs sm:text-sm"
             style={{ maxHeight }}
           >
-            <pre className="whitespace-pre-wrap wrap-break-word">
+            <pre className="whitespace-pre-wrap break-all">
               {highlightedCode}
             </pre>
           </div>

@@ -179,13 +179,13 @@ export function VelocityScanner() {
           >
             <div className="mx-auto max-w-4xl">
               <GlassCard glow className="overflow-hidden">
-                <GlassCardHeader>
-                  <div className="flex items-start justify-between gap-4">
+                <GlassCardHeader className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                     <div className="min-w-0 flex-1">
-                      <GlassCardTitle className="text-xl">
+                      <GlassCardTitle className="text-lg sm:text-xl">
                         Performance Analysis
                       </GlassCardTitle>
-                      <GlassCardDescription className="truncate max-w-md">
+                      <GlassCardDescription className="truncate text-sm">
                         {result
                           ? new URL(result.finalUrl).hostname
                           : "Core Web Vitals for your URL"}

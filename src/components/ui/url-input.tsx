@@ -109,50 +109,55 @@ const URLInput = React.forwardRef<HTMLInputElement, URLInputProps>(
           )}
         </AnimatePresence>
 
-        <div className="flex items-center gap-3 p-4">
-          {/* Status Icon */}
-          <div className="shrink-0">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={status}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                {statusIcon[status]}
-              </motion.div>
-            </AnimatePresence>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4">
+          {/* Input row with icon */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {/* Status Icon */}
+            <div className="shrink-0">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={status}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {statusIcon[status]}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            {/* Input */}
+            <input
+              ref={ref}
+              type="url"
+              value={value}
+              onChange={handleChange}
+              placeholder={placeholder}
+              disabled={isScanning}
+              className={cn(
+                "flex-1 bg-transparent text-zinc-50 placeholder:text-zinc-500",
+                "focus:outline-none text-base sm:text-lg",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "min-w-0"
+              )}
+              {...props}
+            />
           </div>
-
-          {/* Input */}
-          <input
-            ref={ref}
-            type="url"
-            value={value}
-            onChange={handleChange}
-            placeholder={placeholder}
-            disabled={isScanning}
-            className={cn(
-              "flex-1 bg-transparent text-zinc-50 placeholder:text-zinc-500",
-              "focus:outline-none text-lg",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
-            {...props}
-          />
 
           {/* Submit Button */}
           <motion.button
             type="submit"
             disabled={!value || isScanning}
             className={cn(
-              "inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5",
+              "inline-flex items-center justify-center gap-2 rounded-lg",
+              "px-5 py-2.5",
               "bg-orange-500 text-zinc-950 font-semibold",
               "hover:bg-orange-400",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
               "disabled:pointer-events-none disabled:opacity-50",
               "shadow-[0_0_20px_rgba(249,115,22,0.3)]",
-              "transition-colors"
+              "transition-colors",
+              "shrink-0"
             )}
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}

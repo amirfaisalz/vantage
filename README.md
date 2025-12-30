@@ -2,6 +2,8 @@
 
 > **"See what others miss. Optimize for what matters."**
 
+🔗 **Live Preview:** [https://vantage-five.vercel.app/](https://vantage-five.vercel.app/)
+
 Vantage is a high-performance, developer-centric dashboard designed for Growth Engineers. It analyzes any URL for "Growth Readiness" by measuring Core Web Vitals, SEO metadata health, and conversion friction — providing actionable, AI-generated technical recommendations to improve conversion rates.
 
 ![Vantage Preview](public/preview.png)

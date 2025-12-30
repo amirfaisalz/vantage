@@ -43,6 +43,7 @@ export function Navbar() {
                   src="/vantage_logo.png"
                   alt="Vantage Logo"
                   fill
+                  priority
                   className="absolute inset-0 w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-linear-to-r from-orange-500/0 via-orange-500/20 to-orange-500/0 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500" />

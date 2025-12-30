@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GlassCard,
@@ -24,23 +24,45 @@ import { EventNames } from "@/lib/tracking";
 
 type DeviceStrategy = "mobile" | "desktop";
 
+interface DualResults {
+  mobile: AnalysisResult | null;
+  desktop: AnalysisResult | null;
+}
+
+interface DualErrors {
+  mobile: AnalysisError | null;
+  desktop: AnalysisError | null;
+}
+
 export function VelocityScanner() {
   const [scanStatus, setScanStatus] = useState<URLInputStatus>("idle");
   const [showRaw, setShowRaw] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState<AnalysisError | null>(null);
-  const [strategy, setStrategy] = useState<DeviceStrategy>("mobile");
+  const [results, setResults] = useState<DualResults>({
+    mobile: null,
+    desktop: null,
+  });
+  const [errors, setErrors] = useState<DualErrors>({
+    mobile: null,
+    desktop: null,
+  });
+  const [activeView, setActiveView] = useState<DeviceStrategy>("mobile");
   const { track } = useTrackEvent();
+
+  // Get the active result/error based on selected view
+  const result = results[activeView];
+  const error = errors[activeView];
 
   const handleScan = useCallback(
     async (url: string) => {
       setScanStatus("scanning");
-      setError(null);
-      setResult(null);
+      setErrors({ mobile: null, desktop: null });
+      setResults({ mobile: null, desktop: null });
 
-      track(EventNames.ANALYSIS_STARTED, "analysis", { url, strategy });
+      track(EventNames.ANALYSIS_STARTED, "analysis", { url, strategy: "both" });
 
-      try {
+      // Fetch both strategies in parallel
+      const strategies: DeviceStrategy[] = ["mobile", "desktop"];
+      const fetchPromises = strategies.map(async (strategy) => {
         const response = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -50,27 +72,61 @@ export function VelocityScanner() {
         const data = await response.json();
 
         if (!response.ok) {
-          setError(data as AnalysisError);
-          setScanStatus("invalid");
-          track(EventNames.ANALYSIS_ERROR, "analysis", {
-            url,
-            error: (data as AnalysisError).error,
-          });
-          return;
+          return { strategy, success: false, error: data as AnalysisError };
         }
 
-        setResult(data as AnalysisResult);
-        setScanStatus("valid");
-        track(EventNames.ANALYSIS_COMPLETE, "analysis", {
-          url,
-          score: (data as AnalysisResult).performanceScore,
-          lcp: (data as AnalysisResult).metrics.lcp.value,
+        return { strategy, success: true, result: data as AnalysisResult };
+      });
+
+      try {
+        const settledResults = await Promise.allSettled(fetchPromises);
+
+        const newResults: DualResults = { mobile: null, desktop: null };
+        const newErrors: DualErrors = { mobile: null, desktop: null };
+        let hasAnySuccess = false;
+
+        settledResults.forEach((settled, index) => {
+          const strategy = strategies[index];
+
+          if (settled.status === "fulfilled") {
+            const { success, result, error } = settled.value;
+            if (success && result) {
+              newResults[strategy] = result;
+              hasAnySuccess = true;
+            } else if (error) {
+              newErrors[strategy] = error;
+            }
+          } else {
+            newErrors[strategy] = {
+              error: settled.reason?.message || "Failed to analyze",
+              code: "API_ERROR",
+            };
+          }
         });
+
+        setResults(newResults);
+        setErrors(newErrors);
+        setScanStatus(hasAnySuccess ? "valid" : "invalid");
+
+        if (hasAnySuccess) {
+          const mobileResult = newResults.mobile;
+          track(EventNames.ANALYSIS_COMPLETE, "analysis", {
+            url,
+            mobileScore: mobileResult?.performanceScore,
+            desktopScore: newResults.desktop?.performanceScore,
+          });
+        } else {
+          track(EventNames.ANALYSIS_ERROR, "analysis", {
+            url,
+            error: "Both strategies failed",
+          });
+        }
       } catch (err) {
-        setError({
+        const errorObj: AnalysisError = {
           error: err instanceof Error ? err.message : "Failed to analyze URL",
           code: "API_ERROR",
-        });
+        };
+        setErrors({ mobile: errorObj, desktop: errorObj });
         setScanStatus("invalid");
         track(EventNames.ANALYSIS_ERROR, "analysis", {
           url,
@@ -78,10 +134,21 @@ export function VelocityScanner() {
         });
       }
     },
-    [strategy, track]
+    [track]
   );
 
   const isLoading = scanStatus === "scanning";
+  const hasResults = results.mobile !== null || results.desktop !== null;
+
+  // Auto-scroll to results when available
+  useEffect(() => {
+    if (result && !isLoading) {
+      const resultsElement = document.getElementById("analysis-results");
+      if (resultsElement) {
+        resultsElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, [result, isLoading]);
 
   return (
     <>
@@ -130,29 +197,6 @@ export function VelocityScanner() {
             health, and conversion friction with AI-powered recommendations.
           </motion.p>
 
-          {/* Device Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, delay: 0.35 }}
-            className="mt-8 flex justify-center gap-2"
-          >
-            <StrategyButton
-              active={strategy === "mobile"}
-              onClick={() => setStrategy("mobile")}
-              disabled={isLoading}
-              icon={<Smartphone className="h-4 w-4" />}
-              label="Mobile"
-            />
-            <StrategyButton
-              active={strategy === "desktop"}
-              onClick={() => setStrategy("desktop")}
-              disabled={isLoading}
-              icon={<Monitor className="h-4 w-4" />}
-              label="Desktop"
-            />
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,8 +215,9 @@ export function VelocityScanner() {
 
       {/* Results Section */}
       <AnimatePresence>
-        {(isLoading || result || error) && (
+        {(isLoading || hasResults || error) && (
           <motion.section
+            id="analysis-results"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -191,10 +236,28 @@ export function VelocityScanner() {
                           ? new URL(result.finalUrl).hostname
                           : "Core Web Vitals for your URL"}
                       </GlassCardDescription>
-                      {result && (
-                        <span className="text-xs text-zinc-500 mt-1 inline-block">
-                          {strategy === "mobile" ? "📱 Mobile" : "🖥️ Desktop"}
-                        </span>
+                      {/* Device View Toggle */}
+                      {hasResults && !isLoading && (
+                        <div className="flex gap-2 mt-3">
+                          <StrategyButton
+                            active={activeView === "mobile"}
+                            onClick={() => setActiveView("mobile")}
+                            disabled={false}
+                            icon={<Smartphone className="h-4 w-4" />}
+                            label="Mobile"
+                            hasResult={results.mobile !== null}
+                            score={results.mobile?.performanceScore}
+                          />
+                          <StrategyButton
+                            active={activeView === "desktop"}
+                            onClick={() => setActiveView("desktop")}
+                            disabled={false}
+                            icon={<Monitor className="h-4 w-4" />}
+                            label="Desktop"
+                            hasResult={results.desktop !== null}
+                            score={results.desktop?.performanceScore}
+                          />
+                        </div>
                       )}
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
@@ -231,12 +294,16 @@ function StrategyButton({
   disabled,
   icon,
   label,
+  hasResult,
+  score,
 }: {
   active: boolean;
   onClick: () => void;
   disabled: boolean;
   icon: React.ReactNode;
   label: string;
+  hasResult?: boolean;
+  score?: number;
 }) {
   return (
     <button
@@ -252,6 +319,20 @@ function StrategyButton({
     >
       {icon}
       {label}
+      {hasResult && score !== undefined && (
+        <span
+          className={cn(
+            "ml-1 text-xs px-1.5 py-0.5 rounded-full",
+            score >= 90
+              ? "bg-emerald-500/20 text-emerald-400"
+              : score >= 50
+              ? "bg-orange-500/20 text-orange-400"
+              : "bg-red-500/20 text-red-400"
+          )}
+        >
+          {score}
+        </span>
+      )}
     </button>
   );
 }

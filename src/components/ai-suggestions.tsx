@@ -9,12 +9,11 @@ import {
   Check,
   Zap,
   ArrowRight,
+  Loader2,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  generateSuggestions,
-  getPerformanceSummary,
-} from "@/lib/ai/suggestions";
+import { getPerformanceSummary } from "@/lib/ai/suggestions";
 import type { AnalysisResult, AISuggestion } from "@/lib/pagespeed";
 
 interface AISuggestionsProps {
@@ -61,34 +60,47 @@ function SuggestionCard({ suggestion, index }: SuggestionCardProps) {
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-4 text-left"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <span
                 className={cn(
-                  "px-2 py-0.5 text-xs font-medium rounded-full border",
+                  "px-2 py-0.5 text-xs font-medium rounded-full border shrink-0",
                   priorityColors[suggestion.priority]
                 )}
               >
                 {suggestion.priority.toUpperCase()}
               </span>
-              <span className="text-xs text-zinc-500">{suggestion.metric}</span>
+              <span className="text-xs text-zinc-500 truncate">
+                {suggestion.metric}
+              </span>
             </div>
-            <h4 className="font-medium text-zinc-200">{suggestion.title}</h4>
-            <p className="mt-1 text-sm text-zinc-500">{suggestion.impact}</p>
+            <h4 className="font-medium text-zinc-200 leading-tight">
+              {suggestion.title}
+            </h4>
+            <p className="mt-1 text-sm text-zinc-500 line-clamp-2">
+              {suggestion.impact}
+            </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-right">
-              <div className="text-xs text-zinc-500">Current</div>
-              <div className="text-sm font-medium text-red-400">
-                {suggestion.currentValue}
+
+          <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 shrink-0 bg-zinc-900/50 p-2 sm:p-0 rounded-lg sm:bg-transparent border border-zinc-800 sm:border-0">
+            <div className="flex items-center sm:flex-col sm:items-end gap-2 sm:gap-0">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-600 font-semibold hidden sm:block">
+                Current
+              </div>
+              <div className="text-sm font-medium text-red-400 truncate max-w-[120px] sm:max-w-none text-right">
+                {suggestion.currentValue || "N/A"}
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-zinc-600" />
-            <div className="text-right">
-              <div className="text-xs text-zinc-500">Target</div>
-              <div className="text-sm font-medium text-emerald-400">
-                {suggestion.targetValue}
+
+            <ArrowRight className="w-3.5 h-3.5 text-zinc-700 rotate-0 sm:rotate-90 my-0 sm:my-1" />
+
+            <div className="flex items-center sm:flex-col sm:items-end gap-2 sm:gap-0">
+              <div className="text-[10px] uppercase tracking-wider text-zinc-600 font-semibold hidden sm:block">
+                Target
+              </div>
+              <div className="text-sm font-medium text-emerald-400 truncate max-w-[120px] sm:max-w-none text-right">
+                {suggestion.targetValue || "N/A"}
               </div>
             </div>
           </div>
@@ -155,11 +167,41 @@ function SuggestionCard({ suggestion, index }: SuggestionCardProps) {
 }
 
 export function AISuggestions({ result, className }: AISuggestionsProps) {
-  const suggestions = React.useMemo(
-    () => generateSuggestions(result),
-    [result]
-  );
+  const [suggestions, setSuggestions] = React.useState<AISuggestion[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [source, setSource] = React.useState<"gemini" | "fallback">("fallback");
+  const [error, setError] = React.useState<string | null>(null);
   const summary = React.useMemo(() => getPerformanceSummary(result), [result]);
+
+  React.useEffect(() => {
+    async function fetchSuggestions() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch("/api/suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ result }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch suggestions");
+        }
+
+        const data = await response.json();
+        setSuggestions(data.suggestions || []);
+        setSource(data.source || "fallback");
+      } catch (err) {
+        console.error("Failed to fetch AI suggestions:", err);
+        setError("Failed to generate suggestions");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchSuggestions();
+  }, [result]);
 
   const statusColors = {
     excellent: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
@@ -167,6 +209,51 @@ export function AISuggestions({ result, className }: AISuggestionsProps) {
     "needs-work": "text-orange-400 bg-orange-500/10 border-orange-500/30",
     poor: "text-red-400 bg-red-500/10 border-red-500/30",
   };
+
+  if (isLoading) {
+    return (
+      <motion.div
+        className={cn("space-y-4", className)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="flex items-center gap-3 p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
+          <Loader2 className="w-5 h-5 text-orange-400 animate-spin" />
+          <div>
+            <h3 className="font-medium text-zinc-200">
+              Generating AI Suggestions...
+            </h3>
+            <p className="text-sm text-zinc-500">
+              Analyzing your metrics with Gemini AI
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div
+        className={cn(
+          "p-6 rounded-xl border border-red-500/30 bg-red-500/5",
+          className
+        )}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-full bg-red-500/20">
+            <Sparkles className="w-5 h-5 text-red-400" />
+          </div>
+          <div>
+            <h3 className="font-medium text-red-400">Error</h3>
+            <p className="text-sm text-zinc-400">{error}</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (suggestions.length === 0) {
     return (
@@ -202,7 +289,7 @@ export function AISuggestions({ result, className }: AISuggestionsProps) {
       animate={{ opacity: 1 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-orange-500/10">
             <Sparkles className="w-4 h-4 text-orange-400" />
@@ -211,6 +298,12 @@ export function AISuggestions({ result, className }: AISuggestionsProps) {
           <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-400 rounded-full">
             {suggestions.length} suggestions
           </span>
+          {source === "gemini" && (
+            <span className="flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+              <Bot className="w-3 h-3" />
+              Gemini
+            </span>
+          )}
         </div>
         <div
           className={cn(

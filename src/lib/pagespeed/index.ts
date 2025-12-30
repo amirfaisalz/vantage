@@ -5,4 +5,11 @@ export type {
     AnalysisError,
     AnalyzeRequest,
     CoreWebVitals,
+    CategoryScores,
+    OpportunityAudit,
+    DiagnosticAudit,
+    PassedAudit,
+    FieldData,
+    AISuggestion,
 } from "./types";
+

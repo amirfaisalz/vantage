@@ -2,7 +2,7 @@
 
 > **Project:** Growth Analytics & Velocity Engine  
 > **Last Updated:** 2025-12-30  
-> **Current Phase:** Phase 6 - Polish & Optimization
+> **Current Phase:** Phase 8 - PageSpeed Expansion + AI Suggestions
 
 ---
 
@@ -213,19 +213,93 @@ This document breaks down the Vantage project into manageable development phases
 
 ### Tasks
 
-| Task                         | Status         | Notes                      |
-| ---------------------------- | -------------- | -------------------------- |
-| README with Buffer alignment | ⬜ Not Started | Orange rationale, tracking |
-| Code documentation           | ⬜ Not Started |                            |
-| Environment setup guide      | ⬜ Not Started |                            |
-| Vercel deployment            | ⬜ Not Started |                            |
-| Final testing on production  | ⬜ Not Started |                            |
+| Task                        | Status         | Notes                      |
+| --------------------------- | -------------- | -------------------------- |
+| README                      | ⬜ Not Started | Orange rationale, tracking |
+| Code documentation          | ⬜ Not Started |                            |
+| Environment setup guide     | ⬜ Not Started |                            |
+| Vercel deployment           | ⬜ Not Started |                            |
+| Final testing on production | ⬜ Not Started |                            |
 
 ### Deliverables
 
 - [ ] Complete README
 - [ ] Live production site
 - [ ] Portfolio-ready project
+
+---
+
+## Phase 8: PageSpeed Expansion + AI Suggestions
+
+**Status:** 🔄 In Progress  
+**Started:** 2025-12-30
+
+### Objectives
+
+- Match full PageSpeed Insights metrics (like the reference page)
+- Add AI-powered suggestions for achieving perfect scores
+- Create comprehensive audit display (opportunities, diagnostics)
+
+### Tasks
+
+| Task                              | Status         | Notes                              |
+| --------------------------------- | -------------- | ---------------------------------- |
+| Expand types for audits/metrics   | ✅ Done        | `lib/pagespeed/types.ts`           |
+| Extract all Lighthouse categories | ✅ Done        | Accessibility, SEO, Best Practices |
+| Add TTFB & INP gauge charts       | ✅ Done        | `metrics-tabs.tsx`                 |
+| Add FCP metric display            | ✅ Done        | First Contentful Paint             |
+| Create opportunity cards          | ✅ Done        | `opportunity-card.tsx`             |
+| Create diagnostic cards           | ✅ Done        | `diagnostic-card.tsx`              |
+| Create category scores component  | ✅ Done        | `category-scores.tsx`              |
+| Create tabbed interface           | ✅ Done        | `metrics-tabs.tsx`                 |
+| Create AI suggestions lib         | ✅ Done        | `lib/ai/suggestions.ts`            |
+| Create AI suggestions UI          | ✅ Done        | `ai-suggestions.tsx`               |
+| Add field data section            | ⬜ Not Started | Chrome UX Report data (Phase 9)    |
+| Update PHASES.md                  | ✅ Done        | This update                        |
+
+### Deliverables
+
+- [x] Full PageSpeed metrics display (matching reference)
+- [x] Opportunity & diagnostic audits with savings
+- [x] AI suggestions for optimization
+- [x] Tabbed interface for better UX
+
+---
+
+## Phase 9: Gemini AI Integration
+
+**Status:** ⬜ Not Started  
+**Prerequisite:** Gemini API Key
+
+### Objectives
+
+- Replace hardcoded suggestions with real AI-generated recommendations
+- Use Gemini free API for context-aware optimization advice
+- Generate personalized code examples based on actual metrics
+
+### Tasks
+
+| Task                            | Status         | Notes                             |
+| ------------------------------- | -------------- | --------------------------------- |
+| Create Gemini API client        | ⬜ Not Started | `lib/ai/gemini.ts`                |
+| Create `/api/suggestions` route | ⬜ Not Started | Stream AI response                |
+| Build prompt template           | ⬜ Not Started | Include metrics + audit context   |
+| Update AI suggestions component | ⬜ Not Started | Fetch from API instead of local   |
+| Add loading/streaming state     | ⬜ Not Started | Real-time response display        |
+| Add error handling              | ⬜ Not Started | Fallback to hardcoded suggestions |
+| Add caching for repeated URLs   | ⬜ Not Started | Reduce API calls                  |
+
+### Environment Variables Required
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### Deliverables
+
+- [ ] Real AI-powered suggestions from Gemini
+- [ ] Personalized code examples
+- [ ] Context-aware optimization recommendations
 
 ---
 
@@ -247,6 +321,8 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4
               Phase 5 ←───────┘
                   ↓
               Phase 6 → Phase 7
+                  ↓
+              Phase 8 (Can run parallel with 6)
 ```
 
-> **Note:** Phase 3 and Phase 4 can be developed in parallel after Phase 2 is complete.
+> **Note:** Phase 8 can be developed in parallel with Phase 6 as they target different aspects.

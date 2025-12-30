@@ -121,6 +121,103 @@ export interface CoreWebVitals {
         unit: "ms";
         rating: "good" | "needs-improvement" | "poor";
     };
+    /** First Contentful Paint in seconds */
+    fcp?: {
+        value: number;
+        unit: "s";
+        rating: "good" | "needs-improvement" | "poor";
+    };
+}
+
+/** Category scores from Lighthouse */
+export interface CategoryScores {
+    performance: number;
+    accessibility: number;
+    bestPractices: number;
+    seo: number;
+}
+
+/** Opportunity audit with savings */
+export interface OpportunityAudit {
+    id: string;
+    title: string;
+    description: string;
+    score: number | null;
+    savings: number; // ms saved
+    displayValue?: string;
+    details?: {
+        type: string;
+        items?: Array<Record<string, unknown>>;
+        headings?: Array<{ key: string; label: string }>;
+    };
+}
+
+/** Diagnostic audit */
+export interface DiagnosticAudit {
+    id: string;
+    title: string;
+    description: string;
+    score: number | null;
+    displayValue?: string;
+    details?: {
+        type: string;
+        items?: Array<Record<string, unknown>>;
+        headings?: Array<{ key: string; label: string }>;
+    };
+}
+
+/** Passed audit (simplified) */
+export interface PassedAudit {
+    id: string;
+    title: string;
+    description: string;
+}
+
+/** Field data from Chrome UX Report */
+export interface FieldData {
+    lcp?: {
+        percentile: number;
+        good: number;
+        needsImprovement: number;
+        poor: number;
+    };
+    cls?: {
+        percentile: number;
+        good: number;
+        needsImprovement: number;
+        poor: number;
+    };
+    inp?: {
+        percentile: number;
+        good: number;
+        needsImprovement: number;
+        poor: number;
+    };
+    fcp?: {
+        percentile: number;
+        good: number;
+        needsImprovement: number;
+        poor: number;
+    };
+    ttfb?: {
+        percentile: number;
+        good: number;
+        needsImprovement: number;
+        poor: number;
+    };
+}
+
+/** AI Suggestion for optimization */
+export interface AISuggestion {
+    id: string;
+    metric: string;
+    title: string;
+    priority: "high" | "medium" | "low";
+    impact: string;
+    currentValue: string;
+    targetValue: string;
+    suggestion: string;
+    codeExample?: string;
 }
 
 /** Simplified analysis result for frontend */
@@ -137,6 +234,20 @@ export interface AnalysisResult {
     performanceScore: number;
     /** Core Web Vitals metrics */
     metrics: CoreWebVitals;
+    /** Category scores (performance, accessibility, etc.) */
+    categoryScores?: CategoryScores;
+    /** Opportunity audits with savings */
+    opportunities?: OpportunityAudit[];
+    /** Diagnostic audits */
+    diagnostics?: DiagnosticAudit[];
+    /** Passed audits */
+    passedAudits?: PassedAudit[];
+    /** Field data from Chrome UX Report */
+    fieldData?: FieldData;
+    /** Origin-level field data */
+    originFieldData?: FieldData;
+    /** AI-generated suggestions */
+    aiSuggestions?: AISuggestion[];
     /** Raw API response for transparency toggle */
     raw: PageSpeedResponse;
 }
@@ -153,3 +264,4 @@ export interface AnalyzeRequest {
     url: string;
     strategy?: "mobile" | "desktop";
 }
+

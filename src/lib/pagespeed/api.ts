@@ -2,6 +2,12 @@ import type {
     PageSpeedResponse,
     AnalysisResult,
     CoreWebVitals,
+    CategoryScores,
+    OpportunityAudit,
+    DiagnosticAudit,
+    PassedAudit,
+    FieldData,
+    LoadingExperience,
 } from "./types";
 
 const PAGESPEED_API_URL =
@@ -14,6 +20,7 @@ const THRESHOLDS = {
     FID: { good: 100, needsImprovement: 300 }, // ms
     INP: { good: 200, needsImprovement: 500 }, // ms
     TTFB: { good: 800, needsImprovement: 1800 }, // ms
+    FCP: { good: 1800, needsImprovement: 3000 }, // ms
 };
 
 type Rating = "good" | "needs-improvement" | "poor";
@@ -52,6 +59,10 @@ function extractMetrics(response: PageSpeedResponse): CoreWebVitals {
     // TTFB
     const ttfb = audits["server-response-time"]?.numericValue ?? 0;
 
+    // FCP - convert from ms to seconds for display
+    const fcpMs = audits["first-contentful-paint"]?.numericValue ?? 0;
+    const fcpSeconds = fcpMs / 1000;
+
     const metrics: CoreWebVitals = {
         lcp: {
             value: Number(lcpSeconds.toFixed(2)),
@@ -88,7 +99,177 @@ function extractMetrics(response: PageSpeedResponse): CoreWebVitals {
         };
     }
 
+    // Add FCP
+    if (fcpMs > 0) {
+        metrics.fcp = {
+            value: Number(fcpSeconds.toFixed(2)),
+            unit: "s",
+            rating: getRating(fcpMs, THRESHOLDS.FCP),
+        };
+    }
+
     return metrics;
+}
+
+/**
+ * Extract category scores from Lighthouse result
+ */
+function extractCategoryScores(response: PageSpeedResponse): CategoryScores {
+    const categories = response.lighthouseResult.categories;
+    return {
+        performance: Math.round((categories.performance?.score ?? 0) * 100),
+        accessibility: Math.round((categories.accessibility?.score ?? 0) * 100),
+        bestPractices: Math.round((categories["best-practices"]?.score ?? 0) * 100),
+        seo: Math.round((categories.seo?.score ?? 0) * 100),
+    };
+}
+
+/**
+ * Extract opportunity audits (with potential savings)
+ */
+function extractOpportunities(response: PageSpeedResponse): OpportunityAudit[] {
+    const audits = response.lighthouseResult.audits;
+    const performanceCategory = response.lighthouseResult.categories.performance;
+
+    if (!performanceCategory) return [];
+
+    const opportunityIds = performanceCategory.auditRefs
+        .filter((ref) => ref.group === "load-opportunities")
+        .map((ref) => ref.id);
+
+    const opportunities: OpportunityAudit[] = [];
+
+    for (const id of opportunityIds) {
+        const audit = audits[id];
+        if (!audit || audit.score === 1) continue;
+
+        opportunities.push({
+            id: audit.id,
+            title: audit.title,
+            description: audit.description,
+            score: audit.score,
+            savings: audit.numericValue ?? 0,
+            displayValue: audit.displayValue,
+        });
+    }
+
+    return opportunities.sort((a, b) => b.savings - a.savings);
+}
+
+/**
+ * Extract diagnostic audits
+ */
+function extractDiagnostics(response: PageSpeedResponse): DiagnosticAudit[] {
+    const audits = response.lighthouseResult.audits;
+    const performanceCategory = response.lighthouseResult.categories.performance;
+
+    if (!performanceCategory) return [];
+
+    const diagnosticIds = performanceCategory.auditRefs
+        .filter((ref) => ref.group === "diagnostics")
+        .map((ref) => ref.id);
+
+    const diagnostics: DiagnosticAudit[] = [];
+
+    for (const id of diagnosticIds) {
+        const audit = audits[id];
+        if (!audit || audit.score === 1) continue;
+
+        diagnostics.push({
+            id: audit.id,
+            title: audit.title,
+            description: audit.description,
+            score: audit.score,
+            displayValue: audit.displayValue,
+        });
+    }
+
+    return diagnostics;
+}
+
+/**
+ * Extract passed audits
+ */
+function extractPassedAudits(response: PageSpeedResponse): PassedAudit[] {
+    const audits = response.lighthouseResult.audits;
+    const performanceCategory = response.lighthouseResult.categories.performance;
+
+    if (!performanceCategory) return [];
+
+    return performanceCategory.auditRefs
+        .map((ref) => {
+            const audit = audits[ref.id];
+            if (!audit || audit.score !== 1) return null;
+
+            return {
+                id: audit.id,
+                title: audit.title,
+                description: audit.description,
+            };
+        })
+        .filter((audit): audit is PassedAudit => audit !== null);
+}
+
+/**
+ * Extract field data from Loading Experience
+ */
+function extractFieldData(loadingExperience?: LoadingExperience): FieldData | undefined {
+    if (!loadingExperience?.metrics) return undefined;
+
+    const metrics = loadingExperience.metrics;
+    const fieldData: FieldData = {};
+
+    if (metrics.LARGEST_CONTENTFUL_PAINT_MS) {
+        const m = metrics.LARGEST_CONTENTFUL_PAINT_MS;
+        fieldData.lcp = {
+            percentile: m.percentile,
+            good: m.distributions[0]?.proportion ?? 0,
+            needsImprovement: m.distributions[1]?.proportion ?? 0,
+            poor: m.distributions[2]?.proportion ?? 0,
+        };
+    }
+
+    if (metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE) {
+        const m = metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE;
+        fieldData.cls = {
+            percentile: m.percentile,
+            good: m.distributions[0]?.proportion ?? 0,
+            needsImprovement: m.distributions[1]?.proportion ?? 0,
+            poor: m.distributions[2]?.proportion ?? 0,
+        };
+    }
+
+    if (metrics.INTERACTION_TO_NEXT_PAINT) {
+        const m = metrics.INTERACTION_TO_NEXT_PAINT;
+        fieldData.inp = {
+            percentile: m.percentile,
+            good: m.distributions[0]?.proportion ?? 0,
+            needsImprovement: m.distributions[1]?.proportion ?? 0,
+            poor: m.distributions[2]?.proportion ?? 0,
+        };
+    }
+
+    if (metrics.FIRST_CONTENTFUL_PAINT_MS) {
+        const m = metrics.FIRST_CONTENTFUL_PAINT_MS;
+        fieldData.fcp = {
+            percentile: m.percentile,
+            good: m.distributions[0]?.proportion ?? 0,
+            needsImprovement: m.distributions[1]?.proportion ?? 0,
+            poor: m.distributions[2]?.proportion ?? 0,
+        };
+    }
+
+    if (metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE) {
+        const m = metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE;
+        fieldData.ttfb = {
+            percentile: m.percentile,
+            good: m.distributions[0]?.proportion ?? 0,
+            needsImprovement: m.distributions[1]?.proportion ?? 0,
+            poor: m.distributions[2]?.proportion ?? 0,
+        };
+    }
+
+    return Object.keys(fieldData).length > 0 ? fieldData : undefined;
 }
 
 /**
@@ -105,12 +286,15 @@ export async function analyzeUrl(
         throw new Error("Missing GOOGLE_PAGESPEED_API_KEY environment variable");
     }
 
-    // Build API URL
+    // Build API URL - request all categories
     const params = new URLSearchParams({
         url,
         key,
         strategy,
-        category: "performance",
+    });
+    // Add multiple categories
+    ["performance", "accessibility", "best-practices", "seo"].forEach((cat) => {
+        params.append("category", cat);
     });
 
     const apiUrl = `${PAGESPEED_API_URL}?${params.toString()}`;
@@ -148,21 +332,28 @@ export async function analyzeUrl(
 
     const data: PageSpeedResponse = await response.json();
 
-    // Extract performance score
-    const performanceScore = Math.round(
-        (data.lighthouseResult.categories.performance?.score ?? 0) * 100
-    );
-
-    // Extract metrics
+    // Extract all data
     const metrics = extractMetrics(data);
+    const categoryScores = extractCategoryScores(data);
+    const opportunities = extractOpportunities(data);
+    const diagnostics = extractDiagnostics(data);
+    const passedAudits = extractPassedAudits(data);
+    const fieldData = extractFieldData(data.loadingExperience);
+    const originFieldData = extractFieldData(data.originLoadingExperience);
 
     return {
         url: data.lighthouseResult.requestedUrl,
         finalUrl: data.lighthouseResult.finalUrl,
         timestamp: data.analysisUTCTimestamp,
         strategy,
-        performanceScore,
+        performanceScore: categoryScores.performance,
         metrics,
+        categoryScores,
+        opportunities,
+        diagnostics,
+        passedAudits,
+        fieldData,
+        originFieldData,
         raw: data,
     };
 }
@@ -178,3 +369,4 @@ export function isValidUrl(urlString: string): boolean {
         return false;
     }
 }
+

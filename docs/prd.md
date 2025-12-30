@@ -55,6 +55,23 @@
 - **Action:** Whenever a user interacts with a chart or changes a value, a mock "Tracking Event" (simulating Segment/Mixpanel) should appear in the log.
 - **Example Log:** `track("Analysis_Started", { domain: "example.com" })`
 
+### 3.5. AI-Powered Optimization Suggestions ✅
+
+- **Feature:** Intelligent recommendations to achieve perfect scores.
+- **Input:** Analysis results from PageSpeed Insights API.
+- **Output:** Prioritized suggestions (high/medium/low) with:
+  - Current vs. target metric values
+  - Actionable code examples
+  - Estimated performance impact
+- **Metrics Covered:** LCP, CLS, INP/FID, TTFB, FCP, Performance, Accessibility, SEO.
+
+### 3.6. Enhanced PageSpeed Display ✅
+
+- **Category Scores:** Performance, Accessibility, Best Practices, SEO with circular progress.
+- **Tabbed Interface:** Core Web Vitals, Opportunities, Diagnostics, Passed Audits.
+- **Opportunity Cards:** Expandable with estimated savings in milliseconds.
+- **Diagnostic Cards:** With score indicators and expandable descriptions.
+
 ---
 
 ## 4. UI/UX Specifications

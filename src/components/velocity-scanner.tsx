@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/glass-card";
 import { MotionSection } from "@/components/ui/motion";
 import { URLInput, type URLInputStatus } from "@/components/ui/url-input";
-import { GaugeChart } from "@/components/ui/gauge-chart";
 import { CodeBlock } from "@/components/ui/code-block";
 import { TransparencyToggle } from "@/components/ui/transparency-toggle";
 import { SkeletonMetrics } from "@/components/ui/skeleton";
+import { MetricsTabs } from "@/components/ui/metrics-tabs";
+import { AISuggestions } from "@/components/ai-suggestions";
 import { AlertCircle, Monitor, Smartphone } from "lucide-react";
 import type { AnalysisResult, AnalysisError } from "@/lib/pagespeed";
 import { cn } from "@/lib/utils";
@@ -321,29 +322,15 @@ function ResultsView({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="grid gap-8 sm:grid-cols-3 py-4"
+          className="space-y-8 py-4"
         >
-          <GaugeChart
-            value={result.metrics.lcp.value}
-            max={4}
-            label="LCP"
-            unit="s"
-            delay={0}
-          />
-          <GaugeChart
-            value={result.metrics.cls.value}
-            max={0.25}
-            label="CLS"
-            unit=""
-            delay={0.15}
-          />
-          <GaugeChart
-            value={result.metrics.fid.value}
-            max={300}
-            label="FID"
-            unit="ms"
-            delay={0.3}
-          />
+          {/* Tabbed Metrics View */}
+          <MetricsTabs result={result} />
+
+          {/* AI Suggestions Section */}
+          <div className="pt-4 border-t border-zinc-800">
+            <AISuggestions result={result} />
+          </div>
         </motion.div>
       ) : (
         <motion.div

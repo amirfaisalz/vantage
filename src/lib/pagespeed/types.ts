@@ -250,6 +250,14 @@ export interface AnalysisResult {
     aiSuggestions?: AISuggestion[];
     /** Raw API response for transparency toggle */
     raw: PageSpeedResponse;
+    /** Database scan ID (if saved) */
+    scanId?: string;
+    /** Whether this result was served from cache */
+    cached?: boolean;
+    /** When this result was cached */
+    cachedAt?: string;
+    /** Cached AI suggestions (if result was cached) */
+    cachedSuggestions?: AISuggestion[];
 }
 
 /** API error response */
@@ -263,5 +271,6 @@ export interface AnalysisError {
 export interface AnalyzeRequest {
     url: string;
     strategy?: "mobile" | "desktop";
+    /** Force a fresh scan, bypassing cache */
+    forceRefresh?: boolean;
 }
-

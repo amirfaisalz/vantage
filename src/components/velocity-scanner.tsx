@@ -16,11 +16,20 @@ import { TransparencyToggle } from "@/components/ui/transparency-toggle";
 import { SkeletonMetrics } from "@/components/ui/skeleton";
 import { MetricsTabs } from "@/components/ui/metrics-tabs";
 import { AISuggestions } from "@/components/ai-suggestions";
-import { AlertCircle, Monitor, Smartphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertCircle,
+  Monitor,
+  Smartphone,
+  RefreshCw,
+  Clock,
+  Zap,
+} from "lucide-react";
 import type { AnalysisResult, AnalysisError } from "@/lib/pagespeed";
 import { cn } from "@/lib/utils";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import { EventNames } from "@/lib/tracking";
+import { formatDistanceToNow } from "date-fns";
 
 type DeviceStrategy = "mobile" | "desktop";
 
@@ -46,6 +55,8 @@ export function VelocityScanner() {
     desktop: null,
   });
   const [activeView, setActiveView] = useState<DeviceStrategy>("mobile");
+  const [lastScannedUrl, setLastScannedUrl] = useState<string | null>(null);
+  const [isCached, setIsCached] = useState(false);
   const { track } = useTrackEvent();
 
   // Get the active result/error based on selected view
@@ -53,12 +64,18 @@ export function VelocityScanner() {
   const error = errors[activeView];
 
   const handleScan = useCallback(
-    async (url: string) => {
+    async (url: string, forceRefresh = false) => {
       setScanStatus("scanning");
       setErrors({ mobile: null, desktop: null });
       setResults({ mobile: null, desktop: null });
+      setLastScannedUrl(url);
+      setIsCached(false);
 
-      track(EventNames.ANALYSIS_STARTED, "analysis", { url, strategy: "both" });
+      track(EventNames.ANALYSIS_STARTED, "analysis", {
+        url,
+        strategy: "both",
+        forceRefresh,
+      });
 
       // Fetch both strategies in parallel
       const strategies: DeviceStrategy[] = ["mobile", "desktop"];
@@ -66,7 +83,7 @@ export function VelocityScanner() {
         const response = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, strategy }),
+          body: JSON.stringify({ url, strategy, forceRefresh }),
         });
 
         const data = await response.json();
@@ -108,12 +125,18 @@ export function VelocityScanner() {
         setErrors(newErrors);
         setScanStatus(hasAnySuccess ? "valid" : "invalid");
 
+        // Check if any result was cached
+        const anyCached =
+          newResults.mobile?.cached || newResults.desktop?.cached;
+        setIsCached(!!anyCached);
+
         if (hasAnySuccess) {
           const mobileResult = newResults.mobile;
           track(EventNames.ANALYSIS_COMPLETE, "analysis", {
             url,
             mobileScore: mobileResult?.performanceScore,
             desktopScore: newResults.desktop?.performanceScore,
+            cached: anyCached,
           });
         } else {
           track(EventNames.ANALYSIS_ERROR, "analysis", {
@@ -159,42 +182,27 @@ export function VelocityScanner() {
         </div>
 
         <div className="mx-auto max-w-4xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-sm text-zinc-400"
-          >
-            <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-            Growth Analytics Engine
-          </motion.div>
-
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
             className="text-4xl font-bold tracking-tight text-zinc-50 sm:text-6xl"
           >
-            See what others{" "}
+            Velocity{" "}
             <span className="bg-linear-to-r from-orange-500 via-orange-400 to-orange-300 bg-clip-text text-transparent">
-              miss
+              Scanner
             </span>
-            .<br />
-            Optimize for what{" "}
-            <span className="bg-linear-to-r from-orange-500 via-orange-400 to-orange-300 bg-clip-text text-transparent">
-              matters
-            </span>
-            .
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
-            className="mt-6 text-lg leading-8 text-zinc-400"
+            className="mt-6 text-sm leading-6 text-zinc-400"
           >
-            Analyze any URL for Growth Readiness. Measure Core Web Vitals, SEO
-            health, and conversion friction with AI-powered recommendations.
+            We will analyze your URL for Growth Readiness. <br />
+            Measure Core Web Vitals, SEO health, and conversion friction with
+            AI-powered recommendations.
           </motion.p>
 
           <motion.div
@@ -228,17 +236,40 @@ export function VelocityScanner() {
                 <GlassCardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                     <div className="min-w-0 flex-1">
-                      <GlassCardTitle className="text-lg sm:text-xl">
-                        Performance Analysis
-                      </GlassCardTitle>
+                      <div className="flex items-center gap-2">
+                        <GlassCardTitle className="text-lg sm:text-xl">
+                          Performance Analysis
+                        </GlassCardTitle>
+                        {/* Cache Indicator */}
+                        {isCached && result && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-blue-500/20 text-blue-400">
+                            <Clock className="h-3 w-3" />
+                            Cached
+                          </span>
+                        )}
+                        {!isCached && result && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-emerald-500/20 text-emerald-400">
+                            <Zap className="h-3 w-3" />
+                            Fresh
+                          </span>
+                        )}
+                      </div>
                       <GlassCardDescription className="truncate text-sm">
                         {result
                           ? new URL(result.finalUrl).hostname
                           : "Core Web Vitals for your URL"}
+                        {result?.cachedAt && isCached && (
+                          <span className="ml-2 text-zinc-600">
+                            • scanned{" "}
+                            {formatDistanceToNow(new Date(result.cachedAt), {
+                              addSuffix: true,
+                            })}
+                          </span>
+                        )}
                       </GlassCardDescription>
                       {/* Device View Toggle */}
                       {hasResults && !isLoading && (
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           <StrategyButton
                             active={activeView === "mobile"}
                             onClick={() => setActiveView("mobile")}
@@ -257,6 +288,18 @@ export function VelocityScanner() {
                             hasResult={results.desktop !== null}
                             score={results.desktop?.performanceScore}
                           />
+                          {/* Force Refresh Button */}
+                          {isCached && lastScannedUrl && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleScan(lastScannedUrl, true)}
+                              className="text-zinc-400 hover:text-orange-400 ml-auto"
+                            >
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Refresh
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>

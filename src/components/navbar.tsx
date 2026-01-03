@@ -5,17 +5,9 @@ import { Menu, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-const navLinks = [
-  { name: "Product", href: "/product" },
-  { name: "Solutions", href: "/solutions" },
-  { name: "Pricing", href: "/pricing" },
-  { name: "Docs", href: "/docs" },
-];
-
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [pathname, setPathname] = useState("/");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,42 +44,13 @@ export function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <div className="flex items-center gap-1">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 group ${
-                      pathname === link.href
-                        ? "text-orange-500"
-                        : "text-zinc-400 hover:text-white"
-                    }`}
-                  >
-                    {link.name}
-                    <span
-                      className={`absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-orange-500 to-orange-600 transition-all duration-300 ${
-                        pathname === link.href
-                          ? "w-full"
-                          : "w-0 group-hover:w-full"
-                      }`}
-                    />
-                  </a>
-                ))}
-              </div>
-
               <div className="flex items-center gap-3 ml-4">
                 <a
-                  href="/login"
-                  className="px-5 py-2 text-sm font-medium text-zinc-300 hover:text-white transition-all duration-300 hover:scale-105"
-                >
-                  Sign In
-                </a>
-                <a
-                  href="/start"
+                  href="/signin"
                   className="group relative px-6 py-2.5 bg-linear-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 hover:scale-105 active:scale-95"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Get Started
+                    Sign In
                     <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                   <div className="absolute inset-0 bg-linear-to-r from-orange-600 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -118,27 +81,11 @@ export function Navbar() {
         >
           <div className="bg-zinc-950/98 backdrop-blur-xl border-t border-orange-500/20">
             <div className="px-6 py-6 flex flex-col gap-6">
-              <div className="flex flex-col gap-1">
-                {navLinks.map((link, idx) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    style={{ animationDelay: `${idx * 50}ms` }}
-                    className={`px-4 py-3 text-base font-medium rounded-lg transition-all duration-300 ${
-                      pathname === link.href
-                        ? "text-orange-500 bg-orange-500/10"
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
-                    } ${isOpen ? "animate-in slide-in-from-left" : ""}`}
-                    onClick={() => setPathname(link.href)}
-                  >
-                    {link.name}
-                  </a>
-                ))}
-              </div>
+              <div className="flex flex-col gap-1"></div>
               <div className="h-px bg-linear-to-r from-transparent via-orange-500/30 to-transparent" />
               <div className="flex flex-col gap-3">
                 <a
-                  href="/login"
+                  href="/signin"
                   className="px-4 py-3 text-base font-medium text-center text-zinc-300 hover:text-white rounded-lg border border-zinc-700 hover:border-orange-500/50 transition-all duration-300"
                 >
                   Sign In

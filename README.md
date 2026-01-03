@@ -1,6 +1,7 @@
 # Vantage – Growth Analytics & Velocity Engine
 
-> **"See what others miss. Optimize for what matters."**
+> **"See what others miss. Optimize for what matters."**  
+> **Built to demonstrate growth marketing engineering patterns**
 
 🔗 **Live Demo:** [https://vantage-five.vercel.app/](https://vantage-five.vercel.app/)
 
@@ -57,6 +58,59 @@ Real-time event logging simulating analytics tools (Segment/Mixpanel):
 - Mock tracking events on every user interaction
 - Collapsible event log sidebar
 - Demonstrates analytics integration patterns
+
+---
+
+## 🎯 Marketing Features Showcase
+
+> **Demonstrating growth marketing engineering depth**
+
+### 🔗 Referral Tracking Simulator
+
+Showcases viral growth mechanics and attribution tracking:
+
+- Mock referral code generation with unique identifiers
+- Attribution tracking visualization (source/medium/campaign)
+- Viral loop metrics: K-factor, Share rate, Conversion rate
+- Demonstrates understanding of viral growth patterns
+
+### 🧪 A/B Test Configuration Panel
+
+Demonstrates experiment infrastructure capabilities:
+
+- Variant manager UI for A/B/n testing
+- Traffic split controls with visual pie chart
+- Statistical significance calculator
+- Experiment lifecycle management (draft → running → complete)
+
+### 📄 Programmatic Page Generator
+
+Scalable SEO patterns with dynamic page generation:
+
+- `/benchmark/[country]/[industry]` dynamic routes
+- 20 statically generated pages (5 countries × 4 industries)
+- Dynamic SEO metadata and structured data (JSON-LD)
+- Template-driven content with country/industry context
+
+### 🔌 Marketing Tool Integration Mock
+
+Modern marketing tech stack familiarity:
+
+- Segment/GTM event tracking examples
+- Conversion funnel visualization (Awareness → Action)
+- Marketing tech stack showcase (Analytics, CRM, Email, A/B Testing)
+- Data layer implementation patterns
+
+---
+
+## 🔐 Authentication
+
+Secure authentication with modern patterns:
+
+- **Better Auth** with Google OAuth
+- **Turso PostgreSQL** with Drizzle ORM
+- Protected dashboard with session management
+- Login required before URL analysis
 
 ---
 
@@ -124,6 +178,8 @@ Built with **Zustand** for state management, the event log sidebar provides real
 | Charts      | Recharts                           |
 | State       | Zustand                            |
 | AI          | Google Gemini API                  |
+| Auth        | Better Auth + Google OAuth         |
+| Database    | Turso PostgreSQL + Drizzle ORM     |
 | Data Source | Google PageSpeed Insights API      |
 
 ---
@@ -159,12 +215,22 @@ NEXT_PUBLIC_PAGESPEED_API_KEY=your_google_pagespeed_api_key
 
 # Required for AI suggestions
 GEMINI_API_KEY=your_gemini_api_key
+
+# Required for Authentication (Phase 10)
+TURSO_DATABASE_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your_turso_auth_token
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+BETTER_AUTH_SECRET=your_random_secret_key
+BETTER_AUTH_URL=http://localhost:3000
 ```
 
 **Get your API keys:**
 
 - [PageSpeed API Key](https://developers.google.com/speed/docs/insights/v5/get-started)
 - [Gemini API Key](https://aistudio.google.com/app/apikey)
+- [Turso Database](https://turso.tech/)
+- [Google OAuth Credentials](https://console.cloud.google.com/apis/credentials)
 
 ### Development
 
@@ -187,40 +253,55 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 
 ```
 src/
-├── app/                      # Next.js App Router
+├── app/                        # Next.js App Router
+│   ├── (dashboard)/            # Protected dashboard routes
+│   │   ├── layout.tsx          # Sidebar layout
+│   │   ├── page.tsx            # Velocity scanner
+│   │   ├── referral/           # Referral tracking
+│   │   ├── experiments/        # A/B testing
+│   │   └── integrations/       # Marketing tools
 │   ├── api/
-│   │   ├── analyze/          # PageSpeed API route
-│   │   └── suggestions/      # Gemini AI route
-│   └── page.tsx              # Main landing page
+│   │   ├── analyze/            # PageSpeed API route
+│   │   ├── suggestions/        # Gemini AI route
+│   │   └── auth/[...all]/      # Better Auth routes
+│   ├── benchmark/[country]/[industry]/  # Programmatic SEO pages
+│   ├── login/                  # Authentication page
+│   └── page.tsx                # Landing page
 │
 ├── components/
-│   ├── ui/                   # Shadcn + Custom components
-│   │   ├── glass-card.tsx    # Glassmorphism cards
-│   │   ├── gauge-chart.tsx   # Animated SVG gauges
-│   │   ├── url-input.tsx     # Scanning animation input
-│   │   └── code-block.tsx    # Syntax highlighted JSON
-│   ├── velocity-scanner.tsx  # Main scanner component
-│   ├── ai-suggestions.tsx    # AI recommendations UI
-│   ├── growth-roi-simulator.tsx
-│   └── event-log-sidebar.tsx
+│   ├── ui/                     # Shadcn + Custom components
+│   │   ├── sidebar.tsx         # Collapsible sidebar
+│   │   └── ...                 # Other UI components
+│   ├── app-sidebar.tsx         # Main navigation
+│   ├── referral-dashboard.tsx  # Referral tracking UI
+│   ├── ab-test-panel.tsx       # A/B testing panel
+│   ├── conversion-funnel.tsx   # Funnel visualization
+│   └── marketing-stack.tsx     # Tech stack showcase
+│
+├── db/
+│   ├── client.ts               # Turso database connection
+│   └── schema.ts               # Drizzle schema
 │
 ├── lib/
-│   ├── ai/                   # Gemini integration
-│   ├── pagespeed/            # PageSpeed API client
-│   ├── roi/                  # Revenue calculations
-│   └── tracking/             # Event logging system
+│   ├── auth.ts                 # Better Auth config
+│   ├── auth-client.ts          # Client auth utilities
+│   ├── referral/               # Referral tracking logic
+│   ├── ab-testing/             # Experiment management
+│   ├── benchmark/              # Programmatic page data
+│   └── integrations/           # Marketing tool mocks
 │
 └── hooks/
-    └── use-animations.ts     # Framer Motion presets
+    └── use-animations.ts       # Framer Motion presets
 ```
 
 ---
 
 ## 📖 Documentation
 
-- [Phase Development Plan](docs/PHASES.md) – Detailed 9-phase roadmap
+- [Phase Development Plan](docs/PHASES.md) – Detailed 12-phase roadmap
 - [Project Status](docs/STATUS.md) – Current progress tracker
 - [PRD](docs/prd.md) – Full product requirements
+- [Marketing Features](docs/MARKETING_FEATURES.md) – Marketing engineering showcase
 
 ---
 

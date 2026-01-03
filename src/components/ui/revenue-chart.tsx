@@ -57,6 +57,11 @@ export function RevenueChart({
             />
             <XAxis
               dataKey="loadTime"
+              type="number"
+              domain={[
+                0,
+                (dataMax: number) => Math.max(dataMax, currentLoadTime),
+              ]}
               stroke="#71717a"
               fontSize={12}
               tickLine={false}

@@ -72,6 +72,41 @@
 - **Opportunity Cards:** Expandable with estimated savings in milliseconds.
 - **Diagnostic Cards:** With score indicators and expandable descriptions.
 
+### 3.7. Authentication System
+
+- **Provider:** Better Auth with Google OAuth.
+- **Database:** Turso PostgreSQL with Drizzle ORM.
+- **Flow:** Users must login before accessing the URL analyzer.
+- **Session:** Persistent sessions with secure cookie management.
+
+### 3.8. Referral Tracking Simulator
+
+- **Feature:** Mock referral code generation system.
+- **Visualization:** Attribution tracking with flow diagrams.
+- **Metrics:** K-factor, share rate, conversion rate, cycle time.
+- **Purpose:** Demonstrates understanding of viral loop mechanics.
+
+### 3.9. A/B Test Configuration Panel
+
+- **Feature:** Variant manager UI for creating experiments.
+- **Controls:** Traffic split sliders with real-time visualization.
+- **Metrics:** Statistical significance calculations and winner determination.
+- **Purpose:** Shows experiment infrastructure capabilities.
+
+### 3.10. Programmatic Page Generator
+
+- **Route:** `/benchmark/[country]/[industry]` dynamic pages.
+- **Pages:** 20 statically generated pages (5 countries × 4 industries).
+- **SEO:** Dynamic metadata, structured data, canonical URLs.
+- **Purpose:** Demonstrates scalable SEO patterns for organic traffic.
+
+### 3.11. Marketing Tool Integration Mock
+
+- **Segment:** Mock analytics event tracking.
+- **GTM:** DataLayer event examples.
+- **Funnel:** Conversion funnel visualization.
+- **Stack:** Marketing tech stack showcase.
+
 ---
 
 ## 4. UI/UX Specifications

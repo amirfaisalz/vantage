@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,24 +37,24 @@ interface InsightWithScan {
 }
 
 export function InsightsList({ className }: { className?: string }) {
-  const [insights, setInsights] = useState<InsightWithScan[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] =
     useState<PriorityFilterType>("all");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  const fetchInsights = async (pageNum: number) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/scans?page=${pageNum}&limit=10`);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["insights"],
+    queryFn: async ({ pageParam = 1 }: { pageParam?: number }) => {
+      const response = await fetch(`/api/scans?page=${pageParam}&limit=10`);
       if (!response.ok) {
         throw new Error("Failed to fetch insights");
       }
-
       const data = await response.json();
 
       // For each scan, fetch the suggestions
@@ -70,21 +71,25 @@ export function InsightsList({ className }: { className?: string }) {
         })
       );
 
-      const filtered = insightsWithSuggestions.filter(Boolean);
-      setInsights((prev) =>
-        pageNum === 1 ? filtered : [...prev, ...filtered]
-      );
-      setHasMore(data.pagination.totalPages > pageNum);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load insights");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return {
+        insights: insightsWithSuggestions.filter(Boolean) as InsightWithScan[],
+        pagination: data.pagination,
+      };
+    },
+    getNextPageParam: (lastPage: {
+      pagination: { page: number; totalPages: number };
+    }) => {
+      if (lastPage.pagination.page < lastPage.pagination.totalPages) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+  });
 
-  useEffect(() => {
-    fetchInsights(1);
-  }, []);
+  const insights = useMemo(() => {
+    return data?.pages.flatMap((page) => page.insights) || [];
+  }, [data]);
 
   // Flatten all suggestions with scan info for filtering
   const allSuggestions = useMemo(() => {
@@ -120,7 +125,7 @@ export function InsightsList({ className }: { className?: string }) {
     );
   }, [allSuggestions]);
 
-  if (isLoading && insights.length === 0) {
+  if (isLoading) {
     return (
       <div className={cn("mx-auto max-w-4xl", className)}>
         <div className="flex items-center gap-3 p-6 rounded-xl border border-zinc-800 bg-zinc-900/50">
@@ -138,7 +143,7 @@ export function InsightsList({ className }: { className?: string }) {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className={cn("mx-auto max-w-4xl", className)}>
         <GlassCard className="p-8">
@@ -147,8 +152,12 @@ export function InsightsList({ className }: { className?: string }) {
             <h2 className="text-xl font-bold text-zinc-100">
               Error Loading Insights
             </h2>
-            <p className="text-zinc-400">{error}</p>
-            <Button onClick={() => fetchInsights(1)} className="mt-4">
+            <p className="text-zinc-400">
+              {error instanceof Error
+                ? error.message
+                : "Failed to load insights"}
+            </p>
+            <Button onClick={() => fetchNextPage()} className="mt-4">
               Try Again
             </Button>
           </div>
@@ -221,18 +230,15 @@ export function InsightsList({ className }: { className?: string }) {
       </div>
 
       {/* Load More */}
-      {hasMore && (
+      {hasNextPage && (
         <div className="flex justify-center pt-4">
           <Button
             variant="ghost"
-            onClick={() => {
-              setPage((p) => p + 1);
-              fetchInsights(page + 1);
-            }}
-            disabled={isLoading}
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
             className="text-zinc-400 hover:text-orange-400"
           >
-            {isLoading ? (
+            {isFetchingNextPage ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : null}
             Load More

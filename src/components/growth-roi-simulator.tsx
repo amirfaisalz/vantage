@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GlassCard,
@@ -50,35 +51,33 @@ interface RecentScan {
 
 export function GrowthROISimulator() {
   const [inputs, setInputs] = useState<ROIInputs>(DEFAULT_INPUTS);
-  const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
   const [selectedScan, setSelectedScan] = useState<RecentScan | null>(null);
-  const [isLoadingScans, setIsLoadingScans] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const chartData = generateChartData(inputs);
 
   // Fetch recent scans
-  useEffect(() => {
-    async function fetchRecentScans() {
-      try {
-        const response = await fetch("/api/scans?limit=10");
-        if (response.ok) {
-          const data = await response.json();
-          setRecentScans(data.scans || []);
-          // Auto-select the most recent scan if available
-          if (data.scans.length > 0 && !selectedScan) {
-            setSelectedScan(data.scans[0]);
-          }
-        }
-      } catch {
-        // Ignore errors
-      } finally {
-        setIsLoadingScans(false);
+  const { data: recentScans = [], isLoading: isLoadingScans } = useQuery<
+    RecentScan[]
+  >({
+    queryKey: ["recent-scans"],
+    queryFn: async () => {
+      const response = await fetch("/api/scans?limit=10");
+      if (!response.ok) {
+        throw new Error("Failed to fetch scans");
       }
-    }
+      const data = await response.json();
+      return data.scans || [];
+    },
+  });
 
-    fetchRecentScans();
+  // Auto-select the most recent scan when data loads
+  useEffect(() => {
+    if (recentScans.length > 0 && !selectedScan) {
+      setSelectedScan(recentScans[0]);
+    }
+    // Only run when recentScans changes to avoid resetting user selection unless initial load
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [recentScans]);
 
   // Apply selected scan data to ROI calculator
   const applyScanData = () => {

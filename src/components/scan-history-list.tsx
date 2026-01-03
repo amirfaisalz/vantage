@@ -1,7 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+
+async function fetchScans(
+  page: number,
+  limit: number
+): Promise<ScanHistoryResponse> {
+  const response = await fetch(`/api/scans?page=${page}&limit=${limit}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch scans");
+  }
+  return response.json();
+}
 import { formatDistanceToNow } from "date-fns";
 import {
   GlassCard,
@@ -38,6 +55,13 @@ interface ScanHistoryItem {
   createdAt: string;
 }
 
+interface ScanHistoryResponse {
+  scans: ScanHistoryItem[];
+  pagination: {
+    totalPages: number;
+  };
+}
+
 interface ScanHistoryListProps {
   className?: string;
   limit?: number;
@@ -49,43 +73,32 @@ export function ScanHistoryList({
   limit = 5,
   showPagination = true,
 }: ScanHistoryListProps) {
-  const [scans, setScans] = useState<ScanHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const queryClient = useQueryClient();
 
-  const fetchScans = async () => {
-    setIsLoading(true);
-    setError(null);
+  const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
+    queryKey: ["scan-history", page, limit],
+    queryFn: () => fetchScans(page, limit),
+    placeholderData: keepPreviousData,
+  });
 
-    try {
-      const response = await fetch(`/api/scans?page=${page}&limit=${limit}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/scans/${id}`, { method: "DELETE" });
       if (!response.ok) {
-        throw new Error("Failed to fetch scans");
+        throw new Error("Failed to delete scan");
       }
-
-      const data = await response.json();
-      setScans(data.scans);
-      setTotalPages(data.pagination.totalPages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load history");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchScans();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scan-history"] });
+      // Also invalidate stats as they might depend on scan count
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+  });
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/scans/${id}`, { method: "DELETE" });
-      if (response.ok) {
-        setScans((prev) => prev.filter((scan) => scan.id !== id));
-      }
+      await deleteMutation.mutateAsync(id);
     } catch (err) {
       console.error("Failed to delete scan:", err);
     }
@@ -102,14 +115,18 @@ export function ScanHistoryList({
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className={cn("text-center py-8", className)}>
-        <p className="text-red-400 text-sm">{error}</p>
+        <p className="text-red-400 text-sm">
+          {error instanceof Error ? error.message : "Failed to load history"}
+        </p>
         <Button
           variant="ghost"
           size="sm"
-          onClick={fetchScans}
+          onClick={() =>
+            queryClient.invalidateQueries({ queryKey: ["scan-history"] })
+          }
           className="mt-2 text-zinc-400 hover:text-zinc-100"
         >
           Try again
@@ -117,6 +134,9 @@ export function ScanHistoryList({
       </div>
     );
   }
+
+  const scans = data?.scans || [];
+  const totalPages = data?.pagination.totalPages || 1;
 
   if (scans.length === 0) {
     return (
@@ -160,8 +180,12 @@ export function ScanHistoryList({
           <Button
             variant="ghost"
             size="sm"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= totalPages || isPlaceholderData}
+            onClick={() => {
+              if (!isPlaceholderData && page < totalPages) {
+                setPage((p) => p + 1);
+              }
+            }}
             className="text-zinc-400 hover:text-zinc-100"
           >
             <ChevronRight className="h-4 w-4" />

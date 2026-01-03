@@ -36,9 +36,22 @@ const defaultThresholds: Record<string, GaugeThreshold> = {
   FID: { good: 100, needsImprovement: 300 },
   INP: { good: 200, needsImprovement: 500 },
   TTFB: { good: 800, needsImprovement: 1800 },
+  // Lighthouse categories (Higher is better)
+  Performance: { good: 90, needsImprovement: 50 },
+  Accessibility: { good: 90, needsImprovement: 50 },
+  "Best Practices": { good: 90, needsImprovement: 50 },
+  SEO: { good: 90, needsImprovement: 50 },
 };
 
 const getStatus = (value: number, thresholds: GaugeThreshold): GaugeStatus => {
+  // Check if metric is "Higher is better" (good threshold > needsImprovement threshold)
+  if (thresholds.good > thresholds.needsImprovement) {
+    if (value >= thresholds.good) return "good";
+    if (value >= thresholds.needsImprovement) return "needs-improvement";
+    return "poor";
+  }
+
+  // Default "Lower is better" (e.g., Core Web Vitals)
   if (value <= thresholds.good) return "good";
   if (value <= thresholds.needsImprovement) return "needs-improvement";
   return "poor";

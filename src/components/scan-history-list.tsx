@@ -208,71 +208,74 @@ function ScanHistoryCard({ scan, index, onDelete }: ScanHistoryCardProps) {
       exit={{ opacity: 0, x: -100 }}
       transition={{ delay: index * 0.05 }}
     >
-      <GlassCard className="p-4 hover:border-orange-500/30 transition-all duration-300 group">
-        <Link href={`/dashboard/scanner/${scan.id}`} className="block">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 min-w-0 flex-1">
-              {/* Score Badge */}
-              <div
-                className={cn(
-                  "flex items-center justify-center w-12 h-12 rounded-full border-2 font-bold text-sm shrink-0",
-                  getScoreColor(scan.performanceScore)
-                )}
-              >
-                {scan.performanceScore}
-              </div>
-
-              {/* URL and Meta */}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  {scan.strategy === "mobile" ? (
-                    <Smartphone className="h-3.5 w-3.5 text-zinc-500" />
-                  ) : (
-                    <Monitor className="h-3.5 w-3.5 text-zinc-500" />
-                  )}
-                  <h4 className="font-medium text-zinc-200 truncate">
-                    {hostname}
-                  </h4>
-                  <a
-                    href={scan.finalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-zinc-500 hover:text-orange-400 transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-                <p className="text-xs text-zinc-500 mt-0.5">
-                  {formatDistanceToNow(new Date(scan.createdAt), {
-                    addSuffix: true,
-                  })}
-                </p>
-              </div>
+      <GlassCard className="relative p-4 hover:border-orange-500/30 transition-all duration-300 group">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            {/* Score Badge */}
+            <div
+              className={cn(
+                "flex items-center justify-center w-12 h-12 rounded-full border-2 font-bold text-sm shrink-0",
+                getScoreColor(scan.performanceScore)
+              )}
+            >
+              {scan.performanceScore}
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleDelete();
-                }}
-                disabled={isDeleting}
-                className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+            {/* URL and Meta */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                {scan.strategy === "mobile" ? (
+                  <Smartphone className="h-3.5 w-3.5 text-zinc-500" />
                 ) : (
-                  <Trash2 className="h-4 w-4" />
+                  <Monitor className="h-3.5 w-3.5 text-zinc-500" />
                 )}
-              </Button>
+                <h4 className="font-medium text-zinc-200 truncate">
+                  <Link
+                    href={`/dashboard/scanner/${scan.id}`}
+                    className="after:absolute after:inset-0 focus:outline-none"
+                  >
+                    {hostname}
+                  </Link>
+                </h4>
+                <a
+                  href={scan.finalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative z-10 text-zinc-500 hover:text-orange-400 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                {formatDistanceToNow(new Date(scan.createdAt), {
+                  addSuffix: true,
+                })}
+              </p>
             </div>
           </div>
-        </Link>
+
+          {/* Actions */}
+          <div className="relative z-10 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
       </GlassCard>
     </motion.div>
   );

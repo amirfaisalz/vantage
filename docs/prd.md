@@ -72,11 +72,12 @@
 - **Opportunity Cards:** Expandable with estimated savings in milliseconds.
 - **Diagnostic Cards:** With score indicators and expandable descriptions.
 
-### 3.7. Authentication System
+### 3.7. Authentication System ✅
 
 - **Provider:** Better Auth with Google OAuth.
 - **Database:** Turso PostgreSQL with Drizzle ORM.
-- **Flow:** Users must login before accessing the URL analyzer.
+- **Flow:** Users must sign in before accessing the URL analyzer.
+- **URL:** Sign-in page located at `/signin`.
 - **Session:** Persistent sessions with secure cookie management.
 
 ### 3.8. Referral Tracking Simulator

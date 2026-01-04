@@ -215,6 +215,13 @@ export async function POST(request: NextRequest) {
             code,
         };
 
+        console.error("Analyze API Handler Error:", {
+            error: err,
+            message: message,
+            code: code,
+            statusCode: statusCode
+        });
+
         return NextResponse.json(error, { status: statusCode });
     }
 }

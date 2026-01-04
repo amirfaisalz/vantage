@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gauge, Calculator, Sparkles, LayoutDashboard } from "lucide-react";
+import {
+  Gauge,
+  Calculator,
+  Sparkles,
+  LayoutDashboard,
+  Users,
+  FlaskConical,
+  Plug,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -42,6 +50,24 @@ const navigationItems = [
   },
 ];
 
+const marketingItems = [
+  {
+    title: "Referrals",
+    url: "/dashboard/referrals",
+    icon: Users,
+  },
+  {
+    title: "Experiments",
+    url: "/dashboard/experiments",
+    icon: FlaskConical,
+  },
+  {
+    title: "Integrations",
+    url: "/dashboard/integrations",
+    icon: Plug,
+  },
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
 
@@ -67,6 +93,38 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.title}
+                      className={
+                        isActive
+                          ? "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20"
+                          : "text-zinc-400 hover:text-zinc-100"
+                      }
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-zinc-500">
+            Marketing
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {marketingItems.map((item) => {
                 const isActive = pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>

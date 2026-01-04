@@ -78,6 +78,32 @@ export const aiSuggestion = sqliteTable("ai_suggestion", {
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
+// Referral Codes - stores user referral codes with full URLs
+export const referralCode = sqliteTable("referral_code", {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+        .notNull()
+        .references(() => user.id, { onDelete: "cascade" }),
+    code: text("code").notNull().unique(),
+    fullUrl: text("full_url").notNull(),
+    clicks: integer("clicks").notNull().default(0),
+    conversions: integer("conversions").notNull().default(0),
+    tier: text("tier").notNull().default("bronze"), // "bronze" | "silver" | "gold" | "platinum"
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+// Referral Clicks - tracks individual clicks with source attribution
+export const referralClick = sqliteTable("referral_click", {
+    id: text("id").primaryKey(),
+    referralCodeId: text("referral_code_id")
+        .notNull()
+        .references(() => referralCode.id, { onDelete: "cascade" }),
+    source: text("source").notNull().default("direct"), // twitter, linkedin, email, direct, etc.
+    converted: integer("converted", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
 // Type exports for easier usage
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
@@ -85,3 +111,9 @@ export type ScanHistory = typeof scanHistory.$inferSelect;
 export type NewScanHistory = typeof scanHistory.$inferInsert;
 export type AiSuggestion = typeof aiSuggestion.$inferSelect;
 export type NewAiSuggestion = typeof aiSuggestion.$inferInsert;
+export type ReferralCode = typeof referralCode.$inferSelect;
+export type NewReferralCode = typeof referralCode.$inferInsert;
+export type ReferralClick = typeof referralClick.$inferSelect;
+export type NewReferralClick = typeof referralClick.$inferInsert;
+
+

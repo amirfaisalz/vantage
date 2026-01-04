@@ -11,6 +11,7 @@ This document outlines the coding conventions and best practices for the Vantage
 **Rule:** All page-level components should be Server Components by default. Extract interactive parts into separate Client Components.
 
 #### Why?
+
 - Better performance (less JavaScript shipped to client)
 - Direct database/API access in server components
 - Improved SEO and initial page load
@@ -46,7 +47,7 @@ export default async function SomePage() {
 }
 
 // src/components/interactive-form.tsx (Client Component)
-"use client";
+("use client");
 
 export function InteractiveForm({ initialData }) {
   const [state, setState] = useState(initialData);
@@ -57,10 +58,55 @@ export function InteractiveForm({ initialData }) {
 ### When to Use "use client"
 
 Add `"use client"` directive only when the component needs:
+
 - `useState`, `useEffect`, or other React hooks
 - Event handlers (`onClick`, `onChange`, etc.)
 - Browser-only APIs (`window`, `localStorage`)
 - Third-party libraries that use hooks (e.g., Framer Motion animations)
+
+### Component Size Limit
+
+**Rule:** Components should not exceed 300 lines of code. If a component grows beyond this limit, extract logical sections into separate sub-components.
+
+#### Why?
+
+- Improved readability and maintainability
+- Better code reuse
+- Easier testing
+- Faster code reviews
+
+#### Pattern
+
+```tsx
+// ❌ Bad: 800-line monolithic component
+// src/components/large-dashboard.tsx
+export function LargeDashboard() {
+  // 800 lines of mixed concerns
+}
+```
+
+```tsx
+// ✅ Good: Split into focused sub-components
+// src/components/referral/referral-dashboard.tsx (~150 lines)
+import { ReferralMetricsGrid } from "./referral-metrics-grid";
+import { ReferralCharts } from "./referral-charts";
+import { ReferralCodesList } from "./referral-codes-list";
+
+export function ReferralDashboard() {
+  // Orchestration logic only
+  return (
+    <div>
+      <ReferralMetricsGrid metrics={metrics} />
+      <ReferralCharts data={chartData} />
+      <ReferralCodesList codes={codes} />
+    </div>
+  );
+}
+
+// src/components/referral/referral-metrics-grid.tsx (~80 lines)
+// src/components/referral/referral-charts.tsx (~100 lines)
+// src/components/referral/referral-codes-list.tsx (~150 lines)
+```
 
 ---
 
@@ -84,14 +130,14 @@ src/
 
 ## Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Pages | `page.tsx` | `src/app/login/page.tsx` |
-| Layouts | `layout.tsx` | `src/app/(dashboard)/layout.tsx` |
-| Client Components | Descriptive name | `login-form.tsx`, `user-button.tsx` |
-| API Routes | `route.ts` | `src/app/api/auth/[...all]/route.ts` |
-| Hooks | `use-*.ts` | `use-track-event.ts` |
-| Types | `types.ts` | `src/lib/pagespeed/types.ts` |
+| Type              | Convention       | Example                              |
+| ----------------- | ---------------- | ------------------------------------ |
+| Pages             | `page.tsx`       | `src/app/login/page.tsx`             |
+| Layouts           | `layout.tsx`     | `src/app/(dashboard)/layout.tsx`     |
+| Client Components | Descriptive name | `login-form.tsx`, `user-button.tsx`  |
+| API Routes        | `route.ts`       | `src/app/api/auth/[...all]/route.ts` |
+| Hooks             | `use-*.ts`       | `use-track-event.ts`                 |
+| Types             | `types.ts`       | `src/lib/pagespeed/types.ts`         |
 
 ---
 
@@ -135,8 +181,8 @@ For flexibility, some data is stored as JSON strings:
 ```typescript
 // Inserting
 await db.insert(scanHistory).values({
-    metrics: JSON.stringify(coreWebVitals),
-    // ...
+  metrics: JSON.stringify(coreWebVitals),
+  // ...
 });
 
 // Reading

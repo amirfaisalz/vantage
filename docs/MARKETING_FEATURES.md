@@ -20,72 +20,94 @@ Vantage isn't just a performance analyzer—it's a comprehensive demonstration o
 ## 1. Referral Tracking Simulator
 
 ### Purpose
+
 Demonstrates understanding of viral growth mechanics and attribution tracking—core skills for growth engineers building referral programs.
 
 ### Features
 
-#### Referral Code Generation
+#### Referral Code Persistence
+
 ```typescript
-// Mock referral code generation
+// referral_code table
 interface ReferralCode {
-  code: string;           // e.g., "VANTAGE-A7B3K"
-  createdAt: Date;
-  referrerId: string;
+  id: string; // nanoid
+  userId: string; // owner
+  code: string; // e.g., "VANTAGE-A7B3K"
+  fullUrl: string; // http://.../r/VANTAGE-A7B3K
   clicks: number;
   conversions: number;
-  tier: 'bronze' | 'silver' | 'gold';
+  tier: "bronze" | "silver" | "gold" | "platinum";
+  createdAt: Date;
 }
 ```
 
-#### Attribution Tracking Visualization
-- UTM parameter parsing simulation
-- Source/Medium/Campaign breakdown
-- First-touch vs Last-touch attribution
-- Multi-touch attribution modeling
+#### Individual Click & Source Tracking
+
+Every visit to a referral link is tracked individually in the `referral_click` table, allowing for granular attribution:
+
+- **Landing Page:** `/r/[code]` captures the visitor and tracks the event.
+- **Source Capture:** Reads `?source=` or `?utm_source=` UTM parameters.
+- **Conversion Linking:** Conversions are linked back to specific click events via `clickId`.
+
+#### Modular Metrics Dashboard
+
+The Referral Dashboard is built using a modular component architecture:
+
+- `ReferralMetricsGrid`: K-Factor, Conversion Rate, and total stats.
+- `ReferralCharts`: Clicks vs Conversions, Tier Distribution, and Traffic Sources.
+- `ReferralCodesList`: Manage and generate new codes.
+- `ReferralCodeItem`: Expandable per-code source breakdown and quick-test links.
 
 #### Viral Loop Metrics
-| Metric | Description | Calculation |
-|--------|-------------|-------------|
-| K-Factor | Viral coefficient | Invites × Conversion Rate |
-| Share Rate | % of users who share | Shares / Active Users |
-| Conversion Rate | % of clicks that convert | Conversions / Clicks |
-| Cycle Time | Time between viral loops | Average days to re-share |
+
+| Metric          | Description              | Calculation                          |
+| --------------- | ------------------------ | ------------------------------------ |
+| K-Factor        | Viral coefficient        | Invites × Conversion Rate            |
+| Share Rate      | % of users who share     | Shares / Active Users                |
+| Conversion Rate | % of clicks that convert | Conversions / Clicks                 |
+| Cycle Time      | Time between viral loops | Measured via createdAt & convertedAt |
 
 ### Technical Implementation
-- Zustand store for referral state management
-- Real-time event logging via tracking pipeline
-- Sankey diagram for attribution flow visualization
-- Recharts for metrics dashboards
+
+- **API Routes:** `/api/referrals` (CRUD) and `/api/referrals/track` (Public tracking)
+- **State Management:** React Query for data fetching and mutations
+- **Persistence:** Turso/SQLite with Drizzle ORM
+- **Visualization:** Recharts for analytics dashboards
+- **Design:** Zinc dark-mode theme with Orange-500 accents
 
 ---
 
 ## 2. A/B Test Configuration Panel
 
 ### Purpose
+
 Shows capability to build experiment infrastructure—essential for data-driven growth teams.
 
 ### Features
 
 #### Variant Manager UI
+
 - Create unlimited variants (Control + N variants)
 - Name and describe each variant
 - Visual variant preview cards
 
 #### Traffic Split Controls
+
 ```typescript
 interface Experiment {
   id: string;
   name: string;
-  status: 'draft' | 'running' | 'paused' | 'completed';
+  status: "draft" | "running" | "paused" | "completed";
   variants: Variant[];
-  trafficSplit: number[];  // [50, 50] or [33, 33, 34]
-  metrics: string[];       // ['conversion_rate', 'revenue_per_user']
+  trafficSplit: number[]; // [50, 50] or [33, 33, 34]
+  metrics: string[]; // ['conversion_rate', 'revenue_per_user']
   startDate?: Date;
   endDate?: Date;
 }
 ```
 
 #### Features Demonstrated
+
 - Multi-variant testing (beyond A/B to A/B/n)
 - Traffic allocation sliders with real-time updates
 - Statistical significance calculations
@@ -93,6 +115,7 @@ interface Experiment {
 - Experiment lifecycle management
 
 ### UI Components
+
 - Experiment creation wizard
 - Traffic split pie chart
 - Results comparison table
@@ -103,60 +126,70 @@ interface Experiment {
 ## 3. Programmatic Page Generator
 
 ### Purpose
+
 Demonstrates scalable SEO patterns—generating targeted landing pages programmatically for different market segments.
 
 ### Implementation
 
 #### Route Structure
+
 ```
 /benchmark/[country]/[industry]
 ```
 
 #### Generated Pages (20 total)
-| Country | Industries |
-|---------|------------|
-| United States | E-commerce, SaaS, Finance, Healthcare |
+
+| Country        | Industries                            |
+| -------------- | ------------------------------------- |
+| United States  | E-commerce, SaaS, Finance, Healthcare |
 | United Kingdom | E-commerce, SaaS, Finance, Healthcare |
-| Germany | E-commerce, SaaS, Finance, Healthcare |
-| Japan | E-commerce, SaaS, Finance, Healthcare |
-| Australia | E-commerce, SaaS, Finance, Healthcare |
+| Germany        | E-commerce, SaaS, Finance, Healthcare |
+| Japan          | E-commerce, SaaS, Finance, Healthcare |
+| Australia      | E-commerce, SaaS, Finance, Healthcare |
 
 #### SEO Patterns Demonstrated
 
 ##### Dynamic Metadata
+
 ```typescript
 export async function generateMetadata({ params }): Promise<Metadata> {
   return {
     title: `Web Performance Benchmark - ${industry} in ${country}`,
     description: `Compare your ${industry} website performance against ${country} benchmarks...`,
-    openGraph: { /* ... */ },
+    openGraph: {
+      /* ... */
+    },
     alternates: {
-      canonical: `/benchmark/${country}/${industry}`
-    }
+      canonical: `/benchmark/${country}/${industry}`,
+    },
   };
 }
 ```
 
 ##### Static Generation
+
 ```typescript
 export async function generateStaticParams() {
-  const countries = ['us', 'uk', 'de', 'jp', 'au'];
-  const industries = ['ecommerce', 'saas', 'finance', 'healthcare'];
-  
-  return countries.flatMap(country =>
-    industries.map(industry => ({ country, industry }))
+  const countries = ["us", "uk", "de", "jp", "au"];
+  const industries = ["ecommerce", "saas", "finance", "healthcare"];
+
+  return countries.flatMap((country) =>
+    industries.map((industry) => ({ country, industry }))
   );
 }
 ```
 
 ##### Structured Data (JSON-LD)
+
 ```json
 {
   "@context": "https://schema.org",
   "@type": "WebPage",
   "name": "E-commerce Performance Benchmark - United States",
   "description": "...",
-  "breadcrumb": { /* ... */ }
+  "breadcrumb": {
+    /* ... */
+  }
 }
 ```
 
@@ -165,9 +198,11 @@ export async function generateStaticParams() {
 ## 4. Marketing Tool Integration Mock
 
 ### Purpose
+
 Showcases familiarity with the modern marketing tech stack and data pipeline architecture.
 
 ### Segment Integration Mock
+
 ```typescript
 // Mock Segment analytics
 const segment = {
@@ -180,23 +215,25 @@ const segment = {
   },
   page: (name: string, properties: object) => {
     console.log(`[Segment] page("${name}")`, properties);
-  }
+  },
 };
 ```
 
 ### GTM DataLayer Mock
+
 ```typescript
 // Mock GTM dataLayer
 window.dataLayer = window.dataLayer || [];
 window.dataLayer.push({
-  event: 'analysis_complete',
+  event: "analysis_complete",
   performance_score: 85,
-  url_analyzed: 'example.com',
-  strategy: 'mobile'
+  url_analyzed: "example.com",
+  strategy: "mobile",
 });
 ```
 
 ### Conversion Funnel Visualization
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    AWARENESS (1000 visitors)                │
@@ -218,21 +255,23 @@ Overall Conversion Rate: 6%
 ```
 
 ### Marketing Tech Stack Showcase
+
 Visual representation of common integrations:
 
-| Category | Tools |
-|----------|-------|
-| Analytics | Segment, Mixpanel, GA4, Amplitude |
-| CRM | HubSpot, Salesforce, Pipedrive |
-| Email | SendGrid, Mailchimp, Customer.io |
-| A/B Testing | Optimizely, VWO, LaunchDarkly |
-| Attribution | AppsFlyer, Adjust, Branch |
+| Category    | Tools                             |
+| ----------- | --------------------------------- |
+| Analytics   | Segment, Mixpanel, GA4, Amplitude |
+| CRM         | HubSpot, Salesforce, Pipedrive    |
+| Email       | SendGrid, Mailchimp, Customer.io  |
+| A/B Testing | Optimizely, VWO, LaunchDarkly     |
+| Attribution | AppsFlyer, Adjust, Branch         |
 
 ---
 
 ## Technical Skills Demonstrated
 
 ### Frontend Engineering
+
 - React 19 with Server Components
 - Next.js 16 App Router
 - Framer Motion animations
@@ -240,22 +279,26 @@ Visual representation of common integrations:
 - Shadcn/ui component library
 
 ### State Management
+
 - Zustand for global state
 - React Server Actions
 - Optimistic UI updates
 
 ### Authentication & Database
+
 - Better Auth with OAuth
 - Drizzle ORM
 - Turso PostgreSQL
 
 ### SEO & Performance
+
 - Static Site Generation (SSG)
 - Dynamic metadata generation
 - Core Web Vitals optimization
 - Structured data (JSON-LD)
 
 ### Growth Engineering Patterns
+
 - Viral loop mechanics
 - Experiment infrastructure
 - Event tracking pipelines

@@ -21,6 +21,8 @@ erDiagram
     user ||--o{ session : has
     user ||--o{ account : has
     user ||--o{ scan_history : performs
+    user ||--o{ referral_code : owns
+    referral_code ||--o{ referral_click : tracks
     scan_history ||--o| ai_suggestion : generates
 
     user {
@@ -31,6 +33,26 @@ erDiagram
         text image
         timestamp created_at
         timestamp updated_at
+    }
+
+    referral_code {
+        text id PK
+        text user_id FK
+        text code UK
+        text full_url
+        integer clicks
+        integer conversions
+        text tier
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    referral_click {
+        text id PK
+        text referral_code_id FK
+        text source
+        boolean converted
+        timestamp created_at
     }
 
     session {
@@ -90,59 +112,59 @@ erDiagram
 
 Stores user account information (managed by Better Auth).
 
-| Column         | Type      | Constraints  | Description                    |
-| -------------- | --------- | ------------ | ------------------------------ |
-| id             | TEXT      | PRIMARY KEY  | Unique user identifier         |
-| name           | TEXT      | NOT NULL     | User's display name            |
-| email          | TEXT      | UNIQUE       | User's email address           |
-| email_verified | INTEGER   | DEFAULT 0    | Whether email is verified      |
-| image          | TEXT      |              | Profile image URL              |
-| created_at     | TIMESTAMP | NOT NULL     | Account creation timestamp     |
-| updated_at     | TIMESTAMP | NOT NULL     | Last update timestamp          |
+| Column         | Type      | Constraints | Description                |
+| -------------- | --------- | ----------- | -------------------------- |
+| id             | TEXT      | PRIMARY KEY | Unique user identifier     |
+| name           | TEXT      | NOT NULL    | User's display name        |
+| email          | TEXT      | UNIQUE      | User's email address       |
+| email_verified | INTEGER   | DEFAULT 0   | Whether email is verified  |
+| image          | TEXT      |             | Profile image URL          |
+| created_at     | TIMESTAMP | NOT NULL    | Account creation timestamp |
+| updated_at     | TIMESTAMP | NOT NULL    | Last update timestamp      |
 
 ### session
 
 Stores active user sessions (managed by Better Auth).
 
-| Column     | Type      | Constraints      | Description              |
-| ---------- | --------- | ---------------- | ------------------------ |
-| id         | TEXT      | PRIMARY KEY      | Session identifier       |
-| expires_at | TIMESTAMP | NOT NULL         | Session expiration time  |
-| token      | TEXT      | UNIQUE, NOT NULL | Session token            |
-| ip_address | TEXT      |                  | Client IP address        |
-| user_agent | TEXT      |                  | Client user agent        |
-| user_id    | TEXT      | FOREIGN KEY      | Reference to user        |
+| Column     | Type      | Constraints      | Description             |
+| ---------- | --------- | ---------------- | ----------------------- |
+| id         | TEXT      | PRIMARY KEY      | Session identifier      |
+| expires_at | TIMESTAMP | NOT NULL         | Session expiration time |
+| token      | TEXT      | UNIQUE, NOT NULL | Session token           |
+| ip_address | TEXT      |                  | Client IP address       |
+| user_agent | TEXT      |                  | Client user agent       |
+| user_id    | TEXT      | FOREIGN KEY      | Reference to user       |
 
 ### account
 
 Stores OAuth account connections (managed by Better Auth).
 
-| Column                   | Type      | Constraints  | Description                |
-| ------------------------ | --------- | ------------ | -------------------------- |
-| id                       | TEXT      | PRIMARY KEY  | Account identifier         |
-| account_id               | TEXT      | NOT NULL     | External account ID        |
-| provider_id              | TEXT      | NOT NULL     | OAuth provider (e.g., google) |
-| user_id                  | TEXT      | FOREIGN KEY  | Reference to user          |
-| access_token             | TEXT      |              | OAuth access token         |
-| refresh_token            | TEXT      |              | OAuth refresh token        |
-| access_token_expires_at  | TIMESTAMP |              | Token expiration           |
+| Column                  | Type      | Constraints | Description                   |
+| ----------------------- | --------- | ----------- | ----------------------------- |
+| id                      | TEXT      | PRIMARY KEY | Account identifier            |
+| account_id              | TEXT      | NOT NULL    | External account ID           |
+| provider_id             | TEXT      | NOT NULL    | OAuth provider (e.g., google) |
+| user_id                 | TEXT      | FOREIGN KEY | Reference to user             |
+| access_token            | TEXT      |             | OAuth access token            |
+| refresh_token           | TEXT      |             | OAuth refresh token           |
+| access_token_expires_at | TIMESTAMP |             | Token expiration              |
 
 ### scan_history
 
 Stores URL analysis results from PageSpeed Insights API.
 
-| Column            | Type      | Constraints      | Description                          |
-| ----------------- | --------- | ---------------- | ------------------------------------ |
-| id                | TEXT      | PRIMARY KEY      | Unique scan identifier (nanoid)      |
-| user_id           | TEXT      | FOREIGN KEY      | Reference to user                    |
-| url               | TEXT      | NOT NULL         | Original URL that was scanned        |
-| final_url         | TEXT      | NOT NULL         | Final URL after redirects            |
-| strategy          | TEXT      | NOT NULL         | "mobile" or "desktop"                |
-| performance_score | INTEGER   | NOT NULL         | Overall performance score (0-100)    |
-| metrics           | TEXT      | NOT NULL         | JSON string of CoreWebVitals         |
-| category_scores   | TEXT      |                  | JSON string of CategoryScores        |
-| field_data        | TEXT      |                  | JSON string of FieldData             |
-| created_at        | TIMESTAMP | NOT NULL         | Scan timestamp                       |
+| Column            | Type      | Constraints | Description                       |
+| ----------------- | --------- | ----------- | --------------------------------- |
+| id                | TEXT      | PRIMARY KEY | Unique scan identifier (nanoid)   |
+| user_id           | TEXT      | FOREIGN KEY | Reference to user                 |
+| url               | TEXT      | NOT NULL    | Original URL that was scanned     |
+| final_url         | TEXT      | NOT NULL    | Final URL after redirects         |
+| strategy          | TEXT      | NOT NULL    | "mobile" or "desktop"             |
+| performance_score | INTEGER   | NOT NULL    | Overall performance score (0-100) |
+| metrics           | TEXT      | NOT NULL    | JSON string of CoreWebVitals      |
+| category_scores   | TEXT      |             | JSON string of CategoryScores     |
+| field_data        | TEXT      |             | JSON string of FieldData          |
+| created_at        | TIMESTAMP | NOT NULL    | Scan timestamp                    |
 
 **JSON Fields:**
 
@@ -154,27 +176,55 @@ Stores URL analysis results from PageSpeed Insights API.
 
 Stores AI-generated optimization recommendations.
 
+| Column      | Type      | Constraints | Description                        |
+| ----------- | --------- | ----------- | ---------------------------------- |
+| id          | TEXT      | PRIMARY KEY | Unique suggestion set identifier   |
+| scan_id     | TEXT      | FOREIGN KEY | Reference to scan_history          |
+| suggestions | TEXT      | NOT NULL    | JSON array of AISuggestion objects |
+| source      | TEXT      | NOT NULL    | "gemini" or "fallback"             |
+| created_at  | TIMESTAMP | NOT NULL    | Suggestion generation timestamp    |
+
+### referral_code
+
+Stores referral codes generated by users.
+
 | Column      | Type      | Constraints      | Description                          |
 | ----------- | --------- | ---------------- | ------------------------------------ |
-| id          | TEXT      | PRIMARY KEY      | Unique suggestion set identifier     |
-| scan_id     | TEXT      | FOREIGN KEY      | Reference to scan_history            |
-| suggestions | TEXT      | NOT NULL         | JSON array of AISuggestion objects   |
-| source      | TEXT      | NOT NULL         | "gemini" or "fallback"               |
-| created_at  | TIMESTAMP | NOT NULL         | Suggestion generation timestamp      |
+| id          | TEXT      | PRIMARY KEY      | Unique code identifier (nanoid)      |
+| user_id     | TEXT      | FOREIGN KEY      | Reference to user (owner)            |
+| code        | TEXT      | UNIQUE, NOT NULL | Alphanumeric referral code           |
+| full_url    | TEXT      | NOT NULL         | Complete landing page URL            |
+| clicks      | INTEGER   | DEFAULT 0        | Total click count                    |
+| conversions | INTEGER   | DEFAULT 0        | Total conversion count               |
+| tier        | TEXT      | DEFAULT "bronze" | Reward tier (bronze/silver/gold/etc) |
+| created_at  | TIMESTAMP | NOT NULL         | Creation timestamp                   |
+| updated_at  | TIMESTAMP | NOT NULL         | Last update timestamp                |
+
+### referral_click
+
+Tracks individual clicks and source attribution for referral codes.
+
+| Column           | Type      | Constraints | Description                      |
+| ---------------- | --------- | ----------- | -------------------------------- |
+| id               | TEXT      | PRIMARY KEY | Unique click identifier (nanoid) |
+| referral_code_id | TEXT      | FOREIGN KEY | Reference to referral_code       |
+| source           | TEXT      | NOT NULL    | Traffic source (e.g., twitter)   |
+| converted        | INTEGER   | DEFAULT 0   | Whether this click led to signup |
+| created_at       | TIMESTAMP | NOT NULL    | Click timestamp                  |
 
 **Suggestion Structure:**
 
 ```typescript
 interface AISuggestion {
-    id: string;
-    metric: string;
-    title: string;
-    priority: "high" | "medium" | "low";
-    impact: string;
-    currentValue: string;
-    targetValue: string;
-    suggestion: string;
-    codeExample?: string;
+  id: string;
+  metric: string;
+  title: string;
+  priority: "high" | "medium" | "low";
+  impact: string;
+  currentValue: string;
+  targetValue: string;
+  suggestion: string;
+  codeExample?: string;
 }
 ```
 
@@ -202,13 +252,13 @@ Database configuration is in `drizzle.config.ts`:
 
 ```typescript
 export default defineConfig({
-    schema: "./src/db/schema.ts",
-    out: "./drizzle",
-    driver: "turso",
-    dbCredentials: {
-        url: process.env.TURSO_DATABASE_URL!,
-        authToken: process.env.TURSO_AUTH_TOKEN,
-    },
+  schema: "./src/db/schema.ts",
+  out: "./drizzle",
+  driver: "turso",
+  dbCredentials: {
+    url: process.env.TURSO_DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  },
 });
 ```
 
@@ -224,14 +274,14 @@ import { scanHistory } from "@/db/schema";
 import { nanoid } from "nanoid";
 
 await db.insert(scanHistory).values({
-    id: nanoid(),
-    userId: session.user.id,
-    url: "https://example.com",
-    finalUrl: "https://example.com",
-    strategy: "mobile",
-    performanceScore: 85,
-    metrics: JSON.stringify(coreWebVitals),
-    createdAt: new Date(),
+  id: nanoid(),
+  userId: session.user.id,
+  url: "https://example.com",
+  finalUrl: "https://example.com",
+  strategy: "mobile",
+  performanceScore: 85,
+  metrics: JSON.stringify(coreWebVitals),
+  createdAt: new Date(),
 });
 ```
 
@@ -243,11 +293,11 @@ import { scanHistory } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 const scans = await db
-    .select()
-    .from(scanHistory)
-    .where(eq(scanHistory.userId, userId))
-    .orderBy(desc(scanHistory.createdAt))
-    .limit(10);
+  .select()
+  .from(scanHistory)
+  .where(eq(scanHistory.userId, userId))
+  .orderBy(desc(scanHistory.createdAt))
+  .limit(10);
 ```
 
 ### Getting Scan with Suggestions
@@ -258,16 +308,16 @@ import { scanHistory, aiSuggestion } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 const scan = await db
-    .select()
-    .from(scanHistory)
-    .where(eq(scanHistory.id, scanId))
-    .limit(1);
+  .select()
+  .from(scanHistory)
+  .where(eq(scanHistory.id, scanId))
+  .limit(1);
 
 const suggestions = await db
-    .select()
-    .from(aiSuggestion)
-    .where(eq(aiSuggestion.scanId, scanId))
-    .limit(1);
+  .select()
+  .from(aiSuggestion)
+  .where(eq(aiSuggestion.scanId, scanId))
+  .limit(1);
 ```
 
 ---

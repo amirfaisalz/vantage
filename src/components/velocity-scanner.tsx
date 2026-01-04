@@ -193,7 +193,7 @@ export function VelocityScanner() {
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-sm text-zinc-400">
               <Gauge className="h-4 w-4 text-orange-400" />
-              Growth ROI Simulator
+              Velocity Scanner
             </div>
             <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
               Velocity{" "}
@@ -319,7 +319,16 @@ export function VelocityScanner() {
                 </GlassCardHeader>
                 <GlassCardContent>
                   {isLoading && <LoadingState />}
-                  {error && !isLoading && <ErrorState error={error} />}
+                  {error && !isLoading && (
+                    <ErrorState
+                      error={error}
+                      onRetry={
+                        lastScannedUrl
+                          ? () => handleScan(lastScannedUrl, true)
+                          : undefined
+                      }
+                    />
+                  )}
                   {result && !isLoading && (
                     <ResultsView result={result} showRaw={showRaw} />
                   )}
@@ -413,7 +422,17 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ error }: { error: AnalysisError }) {
+function ErrorState({
+  error,
+  onRetry,
+}: {
+  error: AnalysisError;
+  onRetry?: () => void;
+}) {
+  const isLighthouseError =
+    error.error.includes("Lighthouse returned error") ||
+    error.error.includes("Something went wrong");
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -429,6 +448,24 @@ function ErrorState({ error }: { error: AnalysisError }) {
       <p className="text-zinc-400 max-w-md mx-auto">{error.error}</p>
       {error.details && (
         <p className="text-zinc-500 text-sm mt-2">{error.details}</p>
+      )}
+
+      {isLighthouseError && (
+        <p className="text-orange-400/80 text-sm mt-4 max-w-md mx-auto bg-orange-500/10 p-3 rounded-lg border border-orange-500/20">
+          This may be a temporary issue with Google PageSpeed or the target
+          site.
+        </p>
+      )}
+
+      {onRetry && (
+        <Button
+          variant="outline"
+          onClick={onRetry}
+          className="mt-6 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Try Again
+        </Button>
       )}
     </motion.div>
   );

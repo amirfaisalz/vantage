@@ -67,12 +67,14 @@ Real-time event logging simulating analytics tools (Segment/Mixpanel):
 
 ### 🔗 Referral Tracking Simulator
 
-Showcases viral growth mechanics and attribution tracking:
+Showcases viral growth mechanics and attribution tracking with **database persistence**:
 
-- Mock referral code generation with unique identifiers
-- Attribution tracking visualization (source/medium/campaign)
+- Referral code generation with unique identifiers and full shareable URLs
+- Traffic source tracking (Twitter, LinkedIn, Email, Facebook, Direct)
+- Per-code source breakdown with visits and conversions
 - Viral loop metrics: K-factor, Share rate, Conversion rate
-- Demonstrates understanding of viral growth patterns
+- Landing page at `/r/[code]` for testing referral links
+- Real-time click and conversion simulation
 
 ### 🧪 A/B Test Configuration Panel
 

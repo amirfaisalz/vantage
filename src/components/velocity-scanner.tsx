@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Clock,
   Zap,
+  Gauge,
 } from "lucide-react";
 import type { AnalysisResult, AnalysisError } from "@/lib/pagespeed";
 import { cn } from "@/lib/utils";
@@ -182,28 +183,30 @@ export function VelocityScanner() {
         </div>
 
         <div className="mx-auto max-w-4xl text-center">
-          <motion.h1
+          {/* Section Header */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, delay: 0.2 }}
-            className="text-4xl font-bold tracking-tight text-zinc-50 sm:text-6xl"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-10"
           >
-            Velocity{" "}
-            <span className="bg-linear-to-r from-orange-500 via-orange-400 to-orange-300 bg-clip-text text-transparent">
-              Scanner
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 100, delay: 0.3 }}
-            className="mt-6 text-sm leading-6 text-zinc-400"
-          >
-            We will analyze your URL for Growth Readiness. <br />
-            Measure Core Web Vitals, SEO health, and conversion friction with
-            AI-powered recommendations.
-          </motion.p>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-sm text-zinc-400">
+              <Gauge className="h-4 w-4 text-orange-400" />
+              Growth ROI Simulator
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-50 sm:text-4xl">
+              Velocity{" "}
+              <span className="bg-linear-to-r from-orange-500 via-orange-400 to-orange-300 bg-clip-text text-transparent">
+                Scanner
+              </span>
+            </h2>
+            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
+              We will analyze your URL for Growth Readiness. Measure Core Web
+              Vitals, SEO health, and conversion friction with AI-powered
+              recommendations.
+            </p>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

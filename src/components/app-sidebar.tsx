@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Zap,
-  Gauge,
-  Calculator,
-  Sparkles,
-  LayoutDashboard,
-} from "lucide-react";
+import { Gauge, Calculator, Sparkles, LayoutDashboard } from "lucide-react";
 
 import {
   Sidebar,
@@ -23,6 +17,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserButton } from "./user-button";
+import Image from "next/image";
 
 const navigationItems = [
   {
@@ -52,10 +47,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-zinc-800">
-      <SidebarHeader className="border-b border-zinc-800 px-4 py-4">
+      <SidebarHeader className="border-b border-zinc-800 px-4 py-[0.6rem]">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-orange-500 to-orange-600">
-            <Zap className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white">
+            <Image src="/vantage-icon.png" alt="Logo" width={24} height={24} />
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-bold text-zinc-100">Vantage</span>
